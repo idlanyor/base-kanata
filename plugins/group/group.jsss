@@ -1,0 +1,31 @@
+import pkg from '@whiskeysockets/baileys';
+const {proto,generateWAMessageFromContent} = pkg;
+export default async ({ sock, m, id, psn, sender, noTel, caption }) => {
+    const msg = {
+        
+    }
+};
+
+// { optionName: 'hitam' }, Option { optionName: 'putih' }
+// {
+//     options: [[Option], [Option], [Option], [Option]],
+//         name: 'Lorem',
+//             selectableOptionsCount: 0
+// }
+
+// buttons: [
+//     {
+//     buttonId: 'Pulsa',
+//     buttonText: ButtonText { displayText: 'Beli dengan Pulsa' },
+//     type: 1
+//   },
+
+//   ],
+//   contentText: 'Dapatkan *TAMBAHAN 2GB* untuk Hot Promo Bulanan💛',
+//   headerType: 1
+
+// buttonsMessage: ButtonsMessage {
+//     buttons: [ [Button], [Button], [Button] ],
+//     contentText: 'Mau pilih yang mana aja, tetep untuuuung 🤑',
+//     headerType: 1
+//   }

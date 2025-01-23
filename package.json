@@ -1,0 +1,27 @@
+{
+  "name": "bot-wa",
+  "version": "1.0.5",
+  "description": "",
+  "main": "app.js",
+  "type": "module",
+  "private": "true",
+  "scripts": {
+    "start": "node ."
+  },
+  "keywords": [],
+  "author": "Roynaldi",
+  "license": "MIT",
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@seaavey/baileys": "^6.6.5",
+    "@vreden/youtube_scraper": "latest",
+    "axios": "^1.7.2",
+    "chalk": "^5.3.0",
+    "fs-extra": "^11.2.0",
+    "moment": "^2.30.1",
+    "wa-sticker-formatter": "^4.4.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
