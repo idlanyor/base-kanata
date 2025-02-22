@@ -19,7 +19,7 @@ export default async ({ sock, id, m, noTel, sender, psn }) => {
                 message: {
                     newsletterAdminInviteMessage: {
                         newsletterJid: '120363305152329358@newsletter',
-                        newsletterName: 'Kanata Bot',
+                        newsletterName: 'Sonata Bot',
                         caption: `${sender}: ${psn}`
                     }
                 }

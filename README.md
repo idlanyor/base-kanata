@@ -1,12 +1,12 @@
 <div align="center">
-<h1>Little Kanata</h1>
+<h1>Little Sonata</h1>
 <h2 style="color:#1496DC">by Roy</h2>
 
-![GitHub repo size](https://img.shields.io/github/repo-size/idlanyor/kanata-v2)
-![GitHub stars](https://img.shields.io/github/stars/idlanyor/kanata-v2?style=social)
-![GitHub license](https://img.shields.io/github/license/idlanyor/kanata-v2)
+![GitHub repo size](https://img.shields.io/github/repo-size/idlanyor/sonata-v2)
+![GitHub stars](https://img.shields.io/github/stars/idlanyor/sonata-v2?style=social)
+![GitHub license](https://img.shields.io/github/license/idlanyor/sonata-v2)
 
-![Kanata](https://telegra.ph/file/8360caca1efd0f697d122.jpg)
+![Sonata](https://telegra.ph/file/8360caca1efd0f697d122.jpg)
 
 </div>
 
@@ -32,10 +32,10 @@ To use this project, you will need to set up a Various API key. You can do this 
 ```javascript
 // variabel dasar
 globalThis.owner = "Roynaldi";
-globalThis.botName = "Kanata Bot";
+globalThis.botName = "Sonata Bot";
 globalThis.ownerNumber = ""
 globalThis.botNumber = ""
-globalThis.sessionName = 'kanata-bot'
+globalThis.sessionName = 'sonata-bot'
 
 // fungsi dasar
 globalThis.isOwner = (id) => {

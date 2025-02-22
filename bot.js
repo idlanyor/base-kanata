@@ -1,11 +1,11 @@
 import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, makeInMemoryStore, useMultiFileAuthState, DisconnectReason, Browsers } from '@seaavey/baileys';
 import pino from "pino";
 import NodeCache from "node-cache";
-import chalk from 'chalk';
-import fs from 'fs-extra'; 
-import { startBot } from "../main.js";
+import fs from 'fs-extra';
+import { startBot } from "./main.js";
+import { logger } from './helper/logger.js';
 
-class Kanata {
+class Sonata {
     constructor(data) {
         this.phoneNumber = data.phoneNumber;
         this.sessionId = data.sessionId;
@@ -19,10 +19,10 @@ class Kanata {
             timestamp: () => `,"time":"${new Date().toJSON()}"`,
         });
 
-        const logger = MAIN_LOGGER.child({});
-        logger.level = "silent";
+        const loggerPino = MAIN_LOGGER.child({});
+        loggerPino.level = "silent";
 
-        const store = useStore ? makeInMemoryStore({ logger }) : undefined;
+        const store = useStore ? makeInMemoryStore({ logger: loggerPino }) : undefined;
         store?.readFromFile(`store-${this.sessionId}.json`);
 
         setInterval(() => {
@@ -33,7 +33,7 @@ class Kanata {
             level: "silent",
         });
         let { state, saveCreds } = await useMultiFileAuthState(this.sessionId);
-        let { version, isLatest } = await fetchLatestBaileysVersion();
+        let { version } = await fetchLatestBaileysVersion();
         const sock = makeWASocket({
             version,
             logger: P,
@@ -56,7 +56,7 @@ class Kanata {
 
         // Tambah mekanisme retry jika koneksi gagal pas request pairing code
         if (!sock.authState.creds.registered) {
-            console.log(chalk.yellowBright("Menunggu Pairing Code"));
+            logger.info("Menunggu Pairing Code");
             const number = this.phoneNumber;
             const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -67,8 +67,8 @@ class Kanata {
                 try {
                     await delay(6000);
                     const code = await sock.requestPairingCode(number);
-                    console.log(chalk.green("Kode Pairing: "), chalk.bgGreen.black(code));
-                    break; 
+                    logger.connection.pairing(code);
+                    break;
                 } catch (err) {
                     retryCount++;
                     if (retryCount >= maxRetries) {
@@ -79,31 +79,28 @@ class Kanata {
             }
         }
 
-        // console.log('itu', this)
         sock.ev.on("connection.update", async (update) => {
             const { connection, lastDisconnect } = update;
-            // console.log('ini', this)
             if (connection === "connecting") {
-                console.log(chalk.blue("Memulai koneksi soket"));
+                logger.connection.connecting("Memulai koneksi soket");
             } else if (connection === "open") {
-                console.log(chalk.green("Soket terhubung"));
+                logger.connection.connected("Soket terhubung");
             } else if (connection === "close") {
-                console.log(chalk.red("Koneksi terputus, mencoba kembali..."));
+                logger.connection.disconnected("Koneksi terputus, mencoba kembali...");
                 const reason = lastDisconnect?.error?.output?.statusCode;
 
                 if (reason === DisconnectReason.loggedOut) {
-                    console.log(chalk.red("Sesi ora valid, bakal dihapus..."));
+                    logger.error("Sesi ora valid, bakal dihapus...");
 
                     // Hapus folder sesi kalo sesi logout
                     await fs.remove(`./${this.sessionId}`);
-                    console.log(chalk.yellow(`Folder sesi ${this.sessionId} dihapus, login ulang...`));
-
+                    logger.warning(`Folder sesi ${this.sessionId} dihapus, login ulang...`);
 
                     // Login ulang tanpa nge-delay
-                    console.log(chalk.green("Login ulang berhasil. Eksekusi tugas selanjutnya..."));
+                    logger.success("Login ulang berhasil. Eksekusi tugas selanjutnya...");
                     await startBot();
                 } else {
-                    console.log(chalk.red("Koneksi terputus, mencoba kembali..."));
+                    logger.error("Koneksi terputus, mencoba kembali...");
                     await startBot();
                 }
             }
@@ -173,10 +170,10 @@ async function clearMessages(m) {
             }
         }
     } catch (err) {
-        console.log(chalk.red("Error: "), err);
+        logger.error("Error: ", err);
         return m;
     }
 }
 const sanitizeBotId = botId => botId.split(":")[0] + "@s.whatsapp.net";
 
-export { Kanata, clearMessages, sanitizeBotId };
+export { Sonata, clearMessages, sanitizeBotId };

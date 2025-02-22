@@ -12,8 +12,8 @@ export default async ({ sock, m, id, psn, sender, noTel, caption }) => {
             forwardingScore: 9999999,
             isForwarded: true,
             externalAdReply: {
-                title: `乂 Kanata 乂`,
-                body: 'Kanata Bot',
+                title: `乂 Sonata 乂`,
+                body: 'Sonata Bot',
                 mediaType: 1,
                 previewType: 0,
                 renderLargerThumbnail: true,

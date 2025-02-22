@@ -57,7 +57,7 @@ export async function helpMessage() {
     const plugins = await loadPlugins(pluginsDir);
     // console.log(plugins)
 
-    let caption = "🌟 Hai, aku Kanata! Senang sekali bisa membantu kamu hari ini. Berikut adalah daftar perintah yang bisa kamu gunakan:\n";
+    let caption = "🌟 Hai, aku Sonata! Senang sekali bisa membantu kamu hari ini. Berikut adalah daftar perintah yang bisa kamu gunakan:\n";
 
     for (const sonata in plugins) {
         // Nambah header folder

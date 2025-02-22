@@ -1,7 +1,7 @@
 import './global.js'
-import { Kanata, clearMessages } from './bot.js';
+import { Sonata, clearMessages, sanitizeBotId } from './bot.js';
+import { logger } from './helper/logger.js';
 import { groupParticipants, groupUpdate } from './lib/group.js';
-import { checkAnswer, tebakSession } from './lib/tebak/index.js';
 import { getMedia } from './helper/mediaMsg.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import fs from 'fs';
@@ -9,12 +9,13 @@ import path from 'path';
 import chalk from 'chalk';
 import readline from 'readline';
 import { call } from './lib/call.js';
+import { addMessageHandler } from './helper/message.js';
+import { createSticker, StickerTypes } from 'wa-sticker-formatter';
+import Database from './helper/database.js';
 
-// Mendefinisikan __dirname untuk ES6
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Fungsi untuk mencari semua file .js secara rekursif
 function findJsFiles(dir) {
     let results = [];
     const list = fs.readdirSync(dir);
@@ -22,11 +23,9 @@ function findJsFiles(dir) {
         const filePath = path.join(dir, file);
         const stat = fs.statSync(filePath);
 
-        // Jika itu folder, lakukan rekursi
         if (stat && stat.isDirectory()) {
             results = results.concat(findJsFiles(filePath));
         }
-        // Jika itu file .js, tambahkan ke results
         else if (file.endsWith('.js')) {
             results.push(filePath);
         }
@@ -34,7 +33,6 @@ function findJsFiles(dir) {
     return results;
 }
 
-// Fungsi validasi nomor telepon
 async function getPhoneNumber() {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     const namaSesiPath = path.join(__dirname, globalThis.sessionName);
@@ -45,143 +43,249 @@ async function getPhoneNumber() {
     } catch {
         return new Promise(resolve => {
             const validatePhoneNumber = (input) => {
-                const phoneRegex = /^62\d{9,15}$/; // Nomor kudu mulai karo '62' lan minimal 10 digit
+                const phoneRegex = /^62\d{9,15}$/;
                 return phoneRegex.test(input);
             };
             const askForPhoneNumber = () => {
-                rl.question(chalk.yellow("Masukkan nomor telepon (dengan kode negara, contoh: 628xxxxx): "), input => {
+                logger.showBanner();
+                rl.question(chalk.yellowBright("Masukkan nomor telepon (dengan kode negara, contoh: 628xxxxx): "), input => {
                     if (validatePhoneNumber(input)) {
+                        logger.success("Nomor telepon valid!");
                         rl.close();
                         resolve(input);
                     } else {
-                        console.log(chalk.red("Nomor telepon ora valid! Pastikan dimulai dengan '62' lan isine hanya angka (minimal 10 digit)."));
-                        askForPhoneNumber(); // Ulangi nek salah
+                        logger.error("Nomor telepon tidak valid! Harus diawali '62' dan hanya berisi angka (minimal 10 digit).");
+                        askForPhoneNumber();
                     }
                 });
-                console.log('...')
             };
-            console.log("Selamat Datang di Kanata Bot")
-            askForPhoneNumber(); // Mulai validasi
+            askForPhoneNumber();
         });
     }
 }
 
 async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
-    if (!command) return;
-    let [cmd, ...args] = "";
-    [cmd, ...args] = command.split(' ');
-    cmd = cmd.toLowerCase();
-    if (command.startsWith('!')) {
-        cmd = command.toLowerCase().substring(1).split(' ')[0];
-        args = command.split(' ').slice(1)
-    }
-    // console.log("cmd:", cmd)
-    // console.log(args)
-    // console.log(m)
-    const pluginsDir = path.join(__dirname, 'plugins');
-    const plugins = Object.fromEntries(
-        await Promise.all(findJsFiles(pluginsDir).map(async file => {
-            const { default: plugin, handler } = await import(pathToFileURL(file).href);
-            if (Array.isArray(handler) && handler.includes(cmd)) {
-                return [cmd, plugin];
-            }
-            return [handler, plugin];
-        }))
-    );
-    if (plugins[cmd]) {
-        await plugins[cmd]({ sock, m, id, psn: args.join(' '), sender, noTel, attf });
-    }
+    try {
+        if (!command) return;
 
+        let cmd = '';
+        let args = [];
+
+        if (command.startsWith('!')) {
+            cmd = command.toLowerCase().substring(1).split(' ')[0];
+            args = command.split(' ').slice(1);
+        } else {
+            [cmd, ...args] = command.split(' ');
+            cmd = cmd.toLowerCase();
+        }
+
+        // Load semua plugin
+        const pluginsDir = path.join(__dirname, 'plugins');
+        const plugins = {};
+
+        const pluginFiles = findJsFiles(pluginsDir);
+        for (const file of pluginFiles) {
+            try {
+                const plugin = await import(pathToFileURL(file).href);
+                if (!plugin.handler) continue;
+
+                const handlers = Array.isArray(plugin.handler.command) ? 
+                    plugin.handler.command : 
+                    [plugin.handler.command];
+
+                handlers.forEach(h => {
+                    if (typeof h === 'string') {
+                        plugins[h.toLowerCase()] = plugin.handler;
+                    } else if (h instanceof RegExp) {
+                        plugins[h.source.toLowerCase()] = plugin.handler;
+                    }
+                });
+
+            } catch (err) {
+                logger.error(`Error loading plugin ${file}:`, err);
+            }
+        }
+
+        // Coba proses dengan handler dulu
+        const matchedHandler = plugins[cmd];
+
+        if (matchedHandler) {
+            // Validasi permission
+            if (matchedHandler.isAdmin && !(await m.isAdmin)) {
+                await m.reply('❌ *Akses ditolak*\nHanya admin yang dapat menggunakan perintah ini!');
+                return;
+            }
+
+            if (matchedHandler.isBotAdmin && !(await m.isBotAdmin)) {
+                await m.reply('❌ Bot harus menjadi admin untuk menggunakan perintah ini!');
+                return;
+            }
+
+            if (matchedHandler.isOwner && !(await m.isOwner)) {
+                await m.reply('❌ Perintah ini hanya untuk owner bot!');
+                return;
+            }
+
+            if (matchedHandler.isGroup && !m.isGroup) {
+                await m.reply('❌ Perintah ini hanya dapat digunakan di dalam grup!');
+                return;
+            }
+
+            // Eksekusi handler
+            logger.info(`Menjalankan perintah handler: ${cmd}`);
+            await matchedHandler.exec({ 
+                sock, m, id, 
+                args: args.join(' '), 
+                sender, noTel, 
+                attf, cmd 
+            });
+            logger.success(`Perintah handler ${cmd} berhasil dijalankan`);
+            return;
+        }
+
+        // Jika tidak ada handler yang cocok, coba dengan switch case
+        logger.info(`Menjalankan perintah switch: ${cmd}`);
+        switch(cmd) {
+            case 'ping':
+                await m.reply('Pong! 🏓');
+                break;
+
+            case 'sticker':
+            case 's':
+                if (!attf) {
+                    await m.reply('Kirim gambar dengan caption !sticker atau reply gambar dengan !sticker');
+                    return;
+                }
+                const sticker = await createSticker(attf, {
+                    pack: 'Sonata Bot',
+                    author: 'V2',
+                    type: StickerTypes.FULL,
+                    quality: 50
+                });
+                await sock.sendMessage(id, { sticker });
+                break;
+
+            case 'menu2':
+                await m.reply(`
+📝 *MENU UTAMA*
+• !ping - Cek bot aktif
+• !sticker - Buat sticker
+• !menu - Tampilkan menu
+                `);
+                break;
+
+            default:
+                // Perintah tidak ditemukan
+                break;
+        }
+        logger.success(`Perintah switch ${cmd} berhasil dijalankan`);
+
+    } catch (error) {
+        logger.error(`Kesalahan memproses pesan`, error);
+    }
 }
 
 export async function startBot() {
-    const phoneNumber = await getPhoneNumber();
-    const bot = new Kanata({ phoneNumber, sessionId: globalThis.sessionName });
+    try {
+        logger.showBanner();
+        const phoneNumber = await getPhoneNumber();
+        const bot = new Sonata({ phoneNumber, sessionId: globalThis.sessionName });
 
-    bot.start().then(sock => {
-        sock.ev.on('messages.upsert', async chatUpdate => {
-            try {
-                const m = chatUpdate.messages[0];
-                // console.log(m)
-                const { remoteJid } = m.key;
-                const sender = m.pushName || remoteJid;
-                const id = remoteJid;
-                const noTel = remoteJid.split('@')[0].replace(/[^0-9]/g, '');
-
-                if (m.message?.imageMessage || m.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage) {
-                    const imageMessage = m.message.imageMessage || m.message.extendedTextMessage.contextInfo.quotedMessage.imageMessage;
-                    const imageBuffer = await getMedia({ message: { imageMessage } });
-                    const commandImage = m.message.imageMessage?.caption || m.message.extendedTextMessage?.text;
-                    await prosesPerintah({ command: commandImage, sock, m, id, sender, noTel, attf: imageBuffer });
-                }
-
-                if (m.message?.audioMessage || m.message?.extendedTextMessage?.contextInfo?.quotedMessage?.audioMessage) {
-                    const audioMessage = m.message.audioMessage || m.message.extendedTextMessage.contextInfo.quotedMessage.audioMessage;
-                    // console.log(chatUpdate.type)
-                    if (!m.message?.audioMessage?.contextInfo?.quotedMessage) return
-                    const audioBuffer = await getMedia(audioMessage);
-                    const commandAudio = m.message.audioMessage?.caption || m.message.extendedTextMessage?.contextInfo?.quotedMessage?.audioMessage?.caption;
-                    await prosesPerintah({ command: commandAudio, sock, m: audioMessage, id, sender, noTel, attf: audioBuffer });
-                }
-
-                if (m.message?.videoMessage || m.message?.extendedTextMessage?.contextInfo?.quotedMessage?.videoMessage) {
-                    const videoMessage = m.message.videoMessage || m.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage;
-                    const videoBuffer = await getMedia(videoMessage);
-                    const commandVideo = m.message.videoMessage?.caption || m.message.extendedTextMessage?.contextInfo?.quotedMessage?.videoMessage?.caption;
-                    await prosesPerintah({ command: commandVideo, sock, m: videoMessage, id, sender, noTel, attf: videoBuffer });
-                }
-                if (m.message?.interactiveResponseMessage?.nativeFlowResponseMessage) {
-                    const cmd = JSON.parse(m.message.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson);
-                    // console.log(cmd.id)
-                    await prosesPerintah({ command: `!${cmd.id}`, sock, m, id, sender, noTel });
-                }
-                // console.log("Ini obj nya", m.message?.templateButtonReplyMessage)
-                if (m.message?.templateButtonReplyMessage) {
-                    const cmd = m.message.templateButtonReplyMessage?.selectedId;
-                    // console.log(cmd.id)
-                    await prosesPerintah({ command: `!${cmd}`, sock, m, id, sender, noTel });
-                }
-                if (m.message?.buttonsResponseMessage) {
-                    const cmd = m.message.buttonsResponseMessage?.selectedButtonId;
-                    await prosesPerintah({ command: `!${cmd}`, sock, m, id, sender, noTel });
-                }
-                let botId = sock.user.id.replace(/:\d+/, '')
-                let botMentioned = m.message?.extendedTextMessage?.contextInfo?.mentionedJid.includes(botId)
-                    || m.message?.extendedTextMessage?.contextInfo?.participant.includes(botId)
-                let fullmessage = m.message.conversation || m.message?.extendedTextMessage.text
-                    || m.message?.extendedTextMessage?.contextInfo
-                // auto AI mention
-                if (botMentioned) {
-                    try {
-                        await sock.sendMessage(id, { text: await gpt4Hika({ prompt: fullmessage, id }) })
-                    } catch (error) {
-                        await sock.sendMessage(id, { text: 'ups,ada yang salah' })
-
+        bot.start().then(sock => {
+            logger.success('Bot berhasil dimulai!');
+            logger.divider();
+            sock.ev.on('messages.upsert', async chatUpdate => {
+                try {
+                    let m = chatUpdate.messages[0];
+                    m = addMessageHandler(m, sock);
+                    
+                    // Track message stats
+                    await Database.addMessage();
+                    
+                    if (m.type === 'text' && m.message?.conversation?.startsWith('!')) {
+                        await Database.addCommand();
                     }
-                }
 
-                const chat = await clearMessages(m);
-                if (chat) {
-                    const parsedMsg = chat.chatsFrom === "private" ? chat.message : chat.participant.message;
-                    if (tebakSession.has(id)) {
-                        await checkAnswer(id, parsedMsg.toLowerCase(), sock, m, noTel);
+                    const { remoteJid } = m.key;
+                    const sender = m.pushName || remoteJid;
+                    const id = remoteJid;
+                    const noTel = (id.endsWith('@g.us')) ? m.key.participant.split('@')[0].replace(/[^0-9]/g, '') : remoteJid.split('@')[0].replace(/[^0-9]/g, '');
+                    const mediaTypes = ['image', 'video', 'audio'];
+                    
+                    // Cek tipe chat dan sender
+                    if (m.isGroup) {
+                        logger.info(`Pesan grup di: ${remoteJid}\nDari: ${m.senderNumber}`);
                     } else {
+                        logger.info(`Pesan private dari: ${m.senderNumber}`);
+                    }
+
+                    // Cek apakah pesan dari bot sendiri
+                    const botId = sanitizeBotId(sock.user.id);
+                    if (m.sender === botId) {
+                        logger.info('Pesan dari bot sendiri, abaikan');
+                        return;
+                    }
+                    
+                    if (mediaTypes.includes(m.type)) {
+                        const messageType = `${m.type}Message`;
+                        const buffer = m.message[messageType] || 
+                                     m.message?.extendedTextMessage?.contextInfo?.quotedMessage?.[messageType];
+                        
+                        if (buffer) {
+                            const mediaBuffer = await getMedia({ message: { [messageType]: buffer } });
+                            const caption = buffer.caption || m.message?.extendedTextMessage?.text;
+                            const mime = buffer.mime || m.message?.extendedTextMessage?.contextInfo?.quotedMessage?.[messageType]?.mime;
+                            
+                            await prosesPerintah({ 
+                                command: caption,
+                                sock,
+                                m,
+                                id,
+                                sender,
+                                noTel,
+                                attf: mediaBuffer,
+                                mime
+                            });
+                        }
+                    }
+
+                    const buttonTypes = {
+                        interactiveResponseMessage: m => JSON.parse(m.nativeFlowResponseMessage?.paramsJson)?.id,
+                        templateButtonReplyMessage: m => m.selectedId,
+                        buttonsResponseMessage: m => m.selectedButtonId
+                    };
+
+                    for (const [type, getCmd] of Object.entries(buttonTypes)) {
+                        if (m.message?.[type]) {
+                            const cmd = getCmd(m.message[type]);
+                            await prosesPerintah({ command: `!${cmd}`, sock, m, id, sender, noTel });
+                            break;
+                        }
+                    }
+
+                    const chat = await clearMessages(m);
+                    if (chat) {
+                        const parsedMsg = chat.chatsFrom === "private" ? chat.message : chat.participant?.message;
+
                         await prosesPerintah({ command: parsedMsg, sock, m, id, sender, noTel });
                     }
+
+                } catch (error) {
+                    logger.error('Kesalahan menangani pesan:', error);
                 }
-            } catch (error) {
-                console.log('Error handling message:', error);
-            }
-        });
+            });
 
+            sock.ev.on('group-participants.update', ev => groupParticipants(ev, sock));
+            sock.ev.on('groups.update', ev => groupUpdate(ev, sock));
+            sock.ev.on('call', (callEv) => {
+                call(callEv, sock)
+            })
+        }).catch(error => logger.error('Kesalahan fatal memulai bot:', error));
 
-
-        sock.ev.on('group-participants.update', ev => groupParticipants(ev, sock));
-        sock.ev.on('groups.update', ev => groupUpdate(ev, sock));
-        sock.ev.on('call', (callEv) => {
-            call(callEv, sock)
-        })
-    }).catch(error => console.log("Error starting Bot:", error));
+    } catch (error) {
+        logger.error('Gagal memulai bot:', error);
+        process.exit(1);
+    }
 }
 
 startBot();

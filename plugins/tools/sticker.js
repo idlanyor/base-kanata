@@ -9,8 +9,8 @@ export default async ({ sock, m, id, psn, sender, noTel, caption, attf }) => {
 
   if (Buffer.isBuffer(attf)) {
     const stickerOption = {
-      pack: "Kanata",
-      author: "KanataBot",
+      pack: "Sonata",
+      author: "SonataBot",
       type: StickerTypes.FULL,
       quality: 100
     }

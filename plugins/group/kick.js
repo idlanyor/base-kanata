@@ -1,17 +1,29 @@
-export const handler = 'kick'
-export const description = 'Mengeluarkan anggota dari group'
-export default async ({ sock, m, id, psn, sender, noTel, caption, attf }) => {
+import Database from '../../helper/database.js'
 
-    if (psn === '') {
-        await sock.sendMessage(id, { text: '📋 *Gunakan format:* \n\n`kick <@tag>`\n\nContoh:\n`kick @user`' });
-        return;
-    }
+export const handler = {
+    command: 'kick',
+    tags: ['admin', 'group'],
+    help: 'Mengeluarkan member dari grup',
+    isAdmin: true,
+    isBotAdmin: true,
+    isOwner: false,
+    isGroup: true,
+    exec: async ({ sock, m, id, args }) => {
+        try {
+            if (!args) {
+                await m.reply('📋 Format: !kick @user')
+                return
+            }
 
-    try {
-        let res = await sock.groupParticipantsUpdate(id, [psn.replace('@', '') + '@s.whatsapp.net'], 'remove')
-        console.log(res)
-        await sock.sendMessage(id, { text: `✅ *Menendang ${psn.trim()} dari group*` });
-    } catch (error) {
-        await sock.sendMessage(id, { text: '❌ *Terjadi kesalahan:* \n' + error.message });
+            const userJid = args.replace('@', '') + '@s.whatsapp.net'
+            await sock.groupParticipantsUpdate(id, [userJid], 'remove')
+            await m.reply(`✅ Berhasil mengeluarkan @${args.replace('@', '')}`)
+
+        } catch (error) {
+            console.error('Error in kick:', error)
+            await m.reply('❌ Gagal mengeluarkan member')
+        }
     }
-};
+}
+
+export default handler

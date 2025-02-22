@@ -1,17 +1,28 @@
-export const handler = 'promote'
-export const description = 'Menaikkan pangkat anggota grup menjadi Admin'
-export default async ({ sock, m, id, psn, sender, noTel, caption, attf }) => {
 
-    if (psn === '') {
-        await sock.sendMessage(id, { text: '📋 *Gunakan format:* \n\n`promote <@tag>`\n\nContoh:\n`promote @user`' });
-        return;
-    }
+export const handler = {
+    command: 'promote',
+    tags: ['admin', 'group'],
+    help: 'Menaikkan pangkat anggota grup menjadi Admin',
+    isAdmin: true,
+    isBotAdmin: true, 
+    isOwner: false,
+    isGroup: true,
+    exec: async ({ sock, m, id, args }) => {
+        try {
+            if (!args) {
+                await m.reply('📋 Format: !promote @user')
+                return
+            }
 
-    try {
-        await sock.groupParticipantsUpdate(id, [psn.replace('@', '') + '@s.whatsapp.net'], 'promote')
-        // console.log(res)
-        await sock.sendMessage(id, { text: `✅ *Berhasil Menaikkan pangkat \`\`\`${psn.trim()}\`\`\` sebagai Admin*` });
-    } catch (error) {
-        await sock.sendMessage(id, { text: '❌ *Terjadi kesalahan:* \n' + error.message });
+            const userJid = args.replace('@', '') + '@s.whatsapp.net'
+            await sock.groupParticipantsUpdate(id, [userJid], 'promote')
+            await m.reply(`✅ Berhasil menjadikan @${args.replace('@', '')} sebagai Admin`)
+
+        } catch (error) {
+            console.error('Error in promote:', error)
+            await m.reply('❌ Gagal menaikkan pangkat member')
+        }
     }
-};
+}
+
+export default handler

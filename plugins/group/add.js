@@ -1,17 +1,29 @@
-export const handler = 'add'
-export const description = 'Menambahkan anggota ke dalam group'
-export default async ({ sock, m, id, psn, sender, noTel, caption, attf }) => {
+import Database from '../../helper/database.js'
 
-    if (psn === '') {
-        await sock.sendMessage(id, { text: '📋 *Gunakan format:* \n\n`add <@tag>`\n\nContoh:\n`add @user`' });
-        return;
-    }
+export const handler = {
+    command: 'add',
+    tags: ['admin', 'group'],
+    help: 'Menambahkan member ke grup',
+    isAdmin: true,
+    isBotAdmin: true,
+    isOwner: false,
+    isGroup: true,
+    exec: async ({ sock, m, id, args }) => {
+        try {
+            if (!args) {
+                await m.reply('📋 Format: !add 628xxx')
+                return
+            }
 
-    try {
-        let res = await sock.groupParticipantsUpdate(id, [psn.replace('@', '') + '@s.whatsapp.net'], 'add')
-        console.log(res)
-        await sock.sendMessage(id, { text: `✅ *Berhasil Menambahkan \`\`\`${psn.trim()}\`\`\` ke group*` });
-    } catch (error) {
-        await sock.sendMessage(id, { text: '❌ *Terjadi kesalahan:* \n' + error.message });
+            const userJid = args.replace(/[^0-9]/g, '') + '@s.whatsapp.net'
+            await sock.groupParticipantsUpdate(id, [userJid], 'add')
+            await m.reply(`✅ Berhasil menambahkan @${args.replace(/[^0-9]/g, '')}`)
+
+        } catch (error) {
+            console.error('Error in add:', error)
+            await m.reply('❌ Gagal menambahkan member')
+        }
     }
-};
+}
+
+export default handler
