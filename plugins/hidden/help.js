@@ -166,7 +166,6 @@ export const handler = {
                     
                     for (const cmd of cmdList) {
                         menuText += `├ !${cmd}\n`
-                        menuText += `│ ${plugin.help || 'Tidak ada deskripsi'}\n`
                     }
                 }
                 
@@ -204,9 +203,9 @@ ${menuText}
                     },
                     externalAdReply: {
                         title: '乂 Kanata Bot Menu 乂',
-                        body: 'Click here to join our channel!',
-                        thumbnailUrl: 'https://s6.imgcdn.dev/YYoFZh.jpg',
-                        sourceUrl: 'https://whatsapp.com/channel/0029VagADOLLSmbaxFNswH1m',
+                        body: '`${globalThis.owner}`!',
+                        thumbnailUrl: `${globalThis.ppUrl}`,
+                        sourceUrl: `${globalThis.newsletterUrl}`,
                         mediaType: 1,
                         renderLargerThumbnail: true
                     }

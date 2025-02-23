@@ -17,7 +17,10 @@ const defaultData = {
     messages: 0
   },
   settings: {
-    owner: []
+    owner: [],
+    botMode: 'public',
+    autoAI: false,
+    prefix: '!'
   }
 }
 
@@ -94,16 +97,10 @@ const Database = {
           name: '',
           members: [],
           welcome: true,
-          antiLink: false,
           antiSpam: false,
-          botAdmin: false,
-          isBanned: false,
-          mute: false,
-          settings: {
-            restrict: false,
-            viewonce: false,
-            antiToxic: false
-          }
+          antiPromote: false,
+          antiLink: false,
+          antiToxic: false
         }
         await db.write()
       }
@@ -162,9 +159,30 @@ const Database = {
     }
   },
 
-  // Settings
+  // Settings methods yang diperbarui
   async getSettings() {
     try {
+      // Pastikan semua field settings ada
+      if (!db.data.settings) {
+        db.data.settings = defaultData.settings
+      }
+
+      // Pastikan field botMode ada
+      if (!db.data.settings.hasOwnProperty('botMode')) {
+        db.data.settings.botMode = 'public'
+      }
+
+      // Pastikan field autoAI ada
+      if (!db.data.settings.hasOwnProperty('autoAI')) {
+        db.data.settings.autoAI = false
+      }
+
+      // Pastikan field prefix ada
+      if (!db.data.settings.hasOwnProperty('prefix')) {
+        db.data.settings.prefix = '!'
+      }
+
+      await db.write()
       return db.data.settings
     } catch (error) {
       console.error('Error in getSettings:', error)
@@ -174,15 +192,67 @@ const Database = {
 
   async updateSettings(data) {
     try {
+      // Validasi mode bot
+      if (data.botMode && !['public', 'self-private', 'self-me'].includes(data.botMode)) {
+        throw new Error('Invalid bot mode')
+      }
+
       db.data.settings = {
         ...db.data.settings,
-        ...data  
+        ...data
       }
       await db.write()
+
       return db.data.settings
     } catch (error) {
       console.error('Error in updateSettings:', error)
       return null
+    }
+  },
+
+  // Helper methods untuk mode bot
+  async getBotMode() {
+    try {
+      const settings = await this.getSettings()
+      return settings.botMode || 'public'
+    } catch (error) {
+      console.error('Error in getBotMode:', error)
+      return 'public' // Default fallback
+    }
+  },
+
+  async setBotMode(mode) {
+    try {
+      if (!['public', 'self-private', 'self-me'].includes(mode)) {
+        throw new Error('Invalid bot mode')
+      }
+
+      await this.updateSettings({ botMode: mode })
+      return true
+    } catch (error) {
+      console.error('Error in setBotMode:', error)
+      return false
+    }
+  },
+
+  // Method untuk mengecek apakah pesan diizinkan berdasarkan mode
+  async isMessageAllowed(isGroup, isOwner) {
+    try {
+      const mode = await this.getBotMode()
+      
+      switch (mode) {
+        case 'public':
+          return true
+        case 'self-private':
+          return !isGroup || isOwner
+        case 'self-me':
+          return isOwner
+        default:
+          return false
+      }
+    } catch (error) {
+      console.error('Error in isMessageAllowed:', error)
+      return false
     }
   }
 }

@@ -2,21 +2,7 @@ import { downloadContentFromMessage } from "@seaavey/baileys"
 
 export const getMedia = async (msg) => {
     try {
-        // Cek jika pesan adalah view once
-        if (msg.message?.viewOnceMessageV2?.message) {
-            const vo = msg.message.viewOnceMessageV2.message;
-            const messageType = Object.keys(vo)[0];
-            if (!messageType) return null;
 
-            const stream = await downloadContentFromMessage(vo[messageType], messageType.replace('Message', ''));
-            if (!stream) return null;
-            
-            let buffer = Buffer.from([]);
-            for await (const chunk of stream) {
-                buffer = Buffer.concat([buffer, chunk]);
-            }
-            return buffer;
-        }
 
         // Penanganan media normal
         const mediaTypes = ['imageMessage', 'videoMessage', 'audioMessage', 'stickerMessage', 'documentMessage'];

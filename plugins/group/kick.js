@@ -10,14 +10,23 @@ export const handler = {
     isGroup: true,
     exec: async ({ sock, m, id, args }) => {
         try {
-            if (!args) {
-                await m.reply('📋 Format: !kick @user')
+            let userJid
+            
+            // Cek jika ada quoted message
+            if (m.quoted) {
+                userJid = m.quoted.participant
+            }
+            // Jika tidak ada quoted, cek mention
+            else if (args) {
+                userJid = args.replace('@', '') + '@s.whatsapp.net'
+            }
+            else {
+                await m.reply('📋 Format: !kick @user atau reply pesan user')
                 return
             }
 
-            const userJid = args.replace('@', '') + '@s.whatsapp.net'
             await sock.groupParticipantsUpdate(id, [userJid], 'remove')
-            await m.reply(`✅ Berhasil mengeluarkan @${args.replace('@', '')}`)
+            await m.reply(`✅ Berhasil mengeluarkan @${userJid.split('@')[0]}`)
 
         } catch (error) {
             console.error('Error in kick:', error)

@@ -84,7 +84,7 @@ export const handler = {
                 tags: ['main'],
                 isAdmin: false,
                 isBotAdmin: false,
-                isOwner: false,
+                isOwner: c.command === '#' || c.command === '>', // Perintah exec dan eval hanya untuk owner
                 isGroup: false
             }))
 
@@ -167,7 +167,6 @@ export const handler = {
                     for (const cmd of cmdList) {
                         rows.push({
                             title: `!${cmd}`,
-                            description: plugin.help || 'Tidak ada deskripsi',
                             id: `help3 ${cmd}`
                         })
                     }
@@ -191,7 +190,7 @@ export const handler = {
             else greeting = 'Malam'
 
             await sock.sendMessage(m.chat, {
-                image: { url: 'https://s6.imgcdn.dev/YYoFZh.jpg' },
+                image: { url: `${globalThis.ppUrl}` },
                 caption: `╭─「 KANATA BOT 」
 ├ Selamat ${greeting} 👋
 ├ @${noTel}
@@ -224,9 +223,9 @@ export const handler = {
                     forwardingScore: 999,
                     externalAdReply: {
                         title: '乂 Kanata Bot Menu 乂',
-                        body: 'Click here to join our channel!',
-                        thumbnailUrl: 'https://s6.imgcdn.dev/YYoFZh.jpg',
-                        sourceUrl: 'https://whatsapp.com/channel/0029VagADOLLSmbaxFNswH1m',
+                        body: '`${globalThis.owner}`!',
+                        thumbnailUrl: `${globalThis.ppUrl}`,
+                        sourceUrl: `${globalThis.newsletterUrl}`,
                         mediaType: 1,
                         renderLargerThumbnail: true
                     }

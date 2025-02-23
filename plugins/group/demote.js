@@ -1,5 +1,3 @@
-import Database from '../../helper/database.js'
-
 export const handler = {
     command: 'demote',
     tags: ['admin', 'group'],
@@ -10,12 +8,20 @@ export const handler = {
     isGroup: true,
     exec: async ({ sock, m, id, args }) => {
         try {
-            if (!args) {
-                await m.reply('📋 Format: !demote @user')
+            let userJid
+            
+            // Cek jika ada quoted message
+            if (m.quoted) {
+                userJid = m.quoted.participant
+            }
+            // Jika tidak ada quoted, cek mention
+            else if (args) {
+                userJid = args.replace('@', '') + '@s.whatsapp.net'
+            }
+            else {
+                await m.reply('📋 Format: !demote @user atau reply pesan user')
                 return
             }
-
-            const userJid = args.replace('@', '') + '@s.whatsapp.net'
 
             // Cek apakah target adalah admin
             const groupMetadata = await sock.groupMetadata(id)
@@ -33,17 +39,7 @@ export const handler = {
 
             try {
                 await sock.groupParticipantsUpdate(id, [userJid], 'demote')
-                
-                // Update database setelah demote berhasil
-                const group = await m.getGroup()
-                if (group?.admins) {
-                    group.admins = group.admins.filter(admin => admin !== userJid)
-                    await Database.updateGroup(id, {
-                        admins: group.admins
-                    })
-                }
-                
-                await m.reply(`✅ Berhasil menurunkan @${args.replace('@', '')} dari admin`)
+                await m.reply(`✅ Berhasil menurunkan @${userJid.split('@')[0]} dari admin`)
             } catch (updateError) {
                 if (updateError.toString().includes('forbidden')) {
                     await m.reply('❌ Gagal: Bot tidak memiliki izin untuk menurunkan admin!')

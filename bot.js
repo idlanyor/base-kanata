@@ -1,4 +1,4 @@
-import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, makeInMemoryStore, useMultiFileAuthState, DisconnectReason, Browsers } from '@seaavey/baileys';
+import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, makeInMemoryStore, useMultiFileAuthState, DisconnectReason, Browsers, getAggregateVotesInPollMessage } from '@seaavey/baileys';
 import pino from "pino";
 import NodeCache from "node-cache";
 import fs from 'fs-extra';
@@ -29,6 +29,14 @@ class Sonata {
             store?.writeToFile(`store-${this.sessionId}.json`);
         }, 10000 * 6);
 
+        const getMessageFromStore = async (key) => {
+            if (store) {
+                const msg = await store.loadMessage(key.remoteJid, key.id);
+                return msg?.message || undefined;
+            }
+            return undefined;
+        };
+
         const P = pino({
             level: "silent",
         });
@@ -48,6 +56,7 @@ class Sonata {
                 maxRetries: 5,
                 keepAlive: true,
             },
+            getMessage: async (key) => await getMessageFromStore(key)
         });
 
         store?.bind(sock.ev);
