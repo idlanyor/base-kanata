@@ -96,7 +96,7 @@ const Database = {
         db.data.groups[id] = {
           name: '',
           members: [],
-          welcome: true,
+          welcome: false,
           antiSpam: false,
           antiPromote: false,
           antiLink: false,

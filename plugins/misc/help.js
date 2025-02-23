@@ -25,7 +25,7 @@ function findJsFiles(dir) {
 }
 
 // Ambil case dari main.js
-function getMainCases() {
+export function getMainCases() {
     try {
         const mainPath = path.join(__dirname, '../../main.js')
         const mainContent = fs.readFileSync(mainPath, 'utf8')

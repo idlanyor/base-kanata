@@ -1,7 +1,7 @@
 import './global.js'
 import { Sonata, clearMessages, sanitizeBotId } from './bot.js';
 import { logger } from './helper/logger.js';
-import { groupParticipants, groupUpdate } from './lib/group.js';
+import { groupParticipants } from './lib/group.js';
 import { getMedia } from './helper/mediaMsg.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import fs from 'fs';
@@ -72,6 +72,18 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
     try {
         if (!command) return;
 
+        // Log informasi pesan masuk
+        const msgType = Object.keys(m.message)[0]
+        const isGroup = id.endsWith('@g.us')
+        const groupName = isGroup ? (await sock.groupMetadata(id)).subject : 'Private Chat'
+        
+        logger.info('📩 INCOMING MESSAGE')
+        logger.info(`├ From    : ${m.pushName || 'Unknown'} (@${noTel})`)
+        logger.info(`├ Chat    : ${isGroup ? '👥 ' + groupName : '👤 Private'}`)
+        logger.info(`├ Type    : ${msgType}`)
+        logger.info(`└ Content : ${command}`)
+        logger.divider()
+
         // Cek mode bot
         const settings = await Database.getSettings()
         const isOwner = await m.isOwner()
@@ -92,6 +104,14 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
         if (command.startsWith('!')) {
             cmd = command.toLowerCase().substring(1).split(' ')[0];
             args = command.split(' ').slice(1);
+
+            // Log eksekusi command
+            logger.info('⚡ EXECUTE COMMAND')
+            logger.info(`├ Command : ${cmd}`)
+            logger.info(`├ Args    : ${args.join(' ') || '-'}`) 
+            logger.info(`├ From    : ${m.pushName || 'Unknown'} (@${noTel})`)
+            logger.info(`└ Chat    : ${isGroup ? '👥 ' + groupName : '👤 Private'}`)
+            logger.divider()
         } else {
             [cmd, ...args] = command.split(' ');
             cmd = cmd.toLowerCase();
@@ -804,14 +824,43 @@ export async function startBot() {
             const checkAndFollowChannel = async () => {
                 try {
                     await sock.newsletterFollow('120363305152329358@newsletter')
-                    await sock.sendMessage('62895395590009@s.whatsapp.net', { text: 'Bot Successfully Connected' })
                 } catch (error) {
                     logger.error('Gagal mengecek/follow channel:', error)
                 }
-
             }
 
+            // Tambahkan fungsi keep-alive
+            const keepAlive = async () => {
+                try {
+                    // Kirim presence update setiap 4 menit
+                    setInterval(async () => {
+                        await sock.sendPresenceUpdate('available')
+                    }, 4 * 60 * 1000)
 
+                    // Cek koneksi setiap 10 menit
+                    setInterval(async () => {
+                        try {
+                            await sock.updateProfileStatus('🟢 Active - Runtime: ' + await runtime())
+                            logger.system('Keep-alive check passed')
+                        } catch (error) {
+                            logger.error('Keep-alive check failed:', error)
+                        }
+                    }, 10 * 60 * 1000)
+
+                    // Refresh koneksi setiap 6 jam
+                    setInterval(async () => {
+                        logger.system('Refreshing connection...')
+                        await sock.end()
+                        await startBot()
+                    }, 6 * 60 * 60 * 1000)
+
+                } catch (error) {
+                    logger.error('Error in keep-alive:', error)
+                }
+            }
+
+            // Jalankan keep-alive
+            await keepAlive()
 
             // Jalankan fungsi saat koneksi terbuka
             sock.ev.on('connection.update', async (update) => {

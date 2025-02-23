@@ -3,7 +3,7 @@ import Database from '../../helper/database.js'
 export const handler = {
     command: ['groupset', 'setgroup', 'settings'],
     tags: ['group'],
-    help: 'Mengatur fitur grup (antispam/antipromosi/antilink/antitoxic)',
+    help: 'Mengatur fitur grup (welcome/leave/antispam/antipromosi/antilink/antitoxic)',
     isGroup: true,
     isAdmin: true,
     isBotAdmin: true,
@@ -11,24 +11,37 @@ export const handler = {
         try {
             const group = await Database.getGroup(m.chat)
             
-            // Jika tidak ada argumen, tampilkan status saat ini
             if (!args) {
-                const status = `*GROUP SETTINGS*\n\n` +
-                    `📛 Anti Spam: ${group.antiSpam ? '✅' : '❌'}\n` +
-                    `🚫 Anti Promosi: ${group.antiPromote ? '✅' : '❌'}\n` +
-                    `🔗 Anti Link: ${group.antiLink ? '✅' : '❌'}\n` +
-                    `🤬 Anti Toxic: ${group.antiToxic ? '✅' : '❌'}\n\n` +
-                    `Cara penggunaan:\n` +
-                    `!settings <fitur> <on/off>\n\n` +
-                    `Contoh:\n` +
-                    `!settings antispam on`
+                const status = `╭─「 *GROUP SETTINGS* 」
+├ 👋 *Welcome:* ${group.welcome ? '✅' : '❌'}
+├ 👋 *Leave:* ${group.leave ? '✅' : '❌'}
+├ 📛 *Anti Spam:* ${group.antiSpam ? '✅' : '❌'}
+  ├─ *Warning:* ${group.antiSpam ? '3x Kick' : '-'}
+├ 🚫 *Anti Promosi:* ${group.antiPromote ? '✅' : '❌'}
+  ├─ *Warning:* ${group.antiPromote ? '3x Kick' : '-'}
+├ 🔗 *Anti Link:* ${group.antiLink ? '✅' : '❌'}
+  ├─ *Warning:* ${group.antiLink ? '3x Kick' : '-'}
+├ 🤬 *Anti Toxic:* ${group.antiToxic ? '✅' : '❌'}
+  ├─ *Warning:* ${group.antiToxic ? '5x Kick' : '-'}
+│
+├ 📝 *Cara mengubah:*
+├ !settings <fitur> <on/off>
+│
+├ 📌 *Fitur tersedia:*
+├ • welcome
+├ • leave 
+├ • antispam
+├ • antipromote
+├ • antilink
+├ • antitoxic
+╰──────────────────`
 
                 await sock.sendMessage(m.chat, {
                     text: status,
                     contextInfo: {
                         externalAdReply: {
-                            title: '⚙️ Group Settings',
-                            body: 'Klik untuk info lebih lanjut',
+                            title: "⚙️ Group Settings",
+                            body: "Klik untuk info lebih lanjut",
                             thumbnailUrl: `${globalThis.ppUrl}`,
                             sourceUrl: `${globalThis.newsletterUrl}`,
                             mediaType: 1,
@@ -39,16 +52,10 @@ export const handler = {
                 return
             }
 
-            // Parse argumen
             const [feature, state] = args.toLowerCase().split(' ')
             
-            if (!['antispam', 'antipromote', 'antilink', 'antitoxic'].includes(feature)) {
-                await m.reply('❌ Fitur tidak valid!\n\n' +
-                    'Fitur yang tersedia:\n' +
-                    '- antispam\n' +
-                    '- antipromote\n' +
-                    '- antilink\n' +
-                    '- antitoxic')
+            if (!['welcome', 'leave', 'antispam', 'antipromote', 'antilink', 'antitoxic'].includes(feature)) {
+                await m.reply('❌ Fitur tidak valid!')
                 return
             }
 
@@ -57,8 +64,9 @@ export const handler = {
                 return
             }
 
-            // Update database
             const updateData = {
+                welcome: feature === 'welcome' ? state === 'on' : group.welcome,
+                leave: feature === 'leave' ? state === 'on' : group.leave,
                 antiSpam: feature === 'antispam' ? state === 'on' : group.antiSpam,
                 antiPromote: feature === 'antipromote' ? state === 'on' : group.antiPromote,
                 antiLink: feature === 'antilink' ? state === 'on' : group.antiLink,
@@ -67,7 +75,6 @@ export const handler = {
 
             await Database.updateGroup(m.chat, updateData)
 
-            // Kirim konfirmasi
             await sock.sendMessage(m.chat, {
                 text: `✅ Berhasil mengubah ${feature} menjadi ${state}`,
                 contextInfo: {

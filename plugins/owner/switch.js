@@ -1,7 +1,7 @@
 import Database from '../../helper/database.js'
 
 export const handler = {
-    command: ['self', 'mode'],
+    command: ['self', 'switch'],
     tags: ['owner'],
     help: 'Mengubah mode bot (public/self-private/self-me)',
     isOwner: true,
