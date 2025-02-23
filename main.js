@@ -801,7 +801,6 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
                 // Perintah tidak ditemukan
                 break;
         }
-        logger.success(`Perintah switch ${cmd} berhasil dijalankan`);
 
     } catch (error) {
         logger.error(`Kesalahan memproses pesan`, error);
@@ -948,7 +947,8 @@ export async function startBot() {
                 } catch (error) {
                     logger.error('Kesalahan menangani pesan:', error);
                 }
-            });
+            });
+
             sock.ev.on('call', (callEv) => {
                 call(callEv, sock)
             })

@@ -1,7 +1,11 @@
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import Database from '../../helper/database.js';
 import { getMainCases } from '../misc/help.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const handler = {
     command: ['help4', 'h4', 'menu4'],
