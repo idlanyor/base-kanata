@@ -2,9 +2,9 @@
 <h1>Little Sonata</h1>
 <h2 style="color:#1496DC">by Roy</h2>
 
-![GitHub repo size](https://img.shields.io/github/repo-size/idlanyor/sonata-v2)
-![GitHub stars](https://img.shields.io/github/stars/idlanyor/sonata-v2?style=social)
-![GitHub license](https://img.shields.io/github/license/idlanyor/sonata-v2)
+![GitHub repo size](https://img.shields.io/github/repo-size/idlanyor/base-kanata)
+![GitHub stars](https://img.shields.io/github/stars/idlanyor/base-kanata?style=social)
+![GitHub license](https://img.shields.io/github/license/idlanyor/base-kanata)
 
 ![Sonata](https://telegra.ph/file/8360caca1efd0f697d122.jpg)
 

@@ -948,10 +948,7 @@ export async function startBot() {
                 } catch (error) {
                     logger.error('Kesalahan menangani pesan:', error);
                 }
-            });
-
-            sock.ev.on('group-participants.update', ev => groupParticipants(ev, sock));
-            sock.ev.on('groups.update', ev => groupUpdate(ev, sock));
+            });
             sock.ev.on('call', (callEv) => {
                 call(callEv, sock)
             })
