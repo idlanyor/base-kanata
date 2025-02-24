@@ -3,6 +3,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import Database from '../../helper/database.js';
 import { getMainCases } from '../misc/help.js';
+import { findJsFiles } from '../../main.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,7 +71,7 @@ export const handler = {
 │ Selamat ${greeting}
 │
 │ 📱 *INFO BOT*
-│ ▸ Mode: ${await Database.getMode()}
+│ ▸ Mode: ${await Database.getBotMode()}
 │ ▸ Prefix: !
 │\n`
 

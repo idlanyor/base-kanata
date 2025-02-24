@@ -20,7 +20,7 @@ const __dirname = path.dirname(__filename);
 
 const execAsync = promisify(exec);
 
-function findJsFiles(dir) {
+export function findJsFiles(dir) {
     let results = [];
     const list = fs.readdirSync(dir);
     list.forEach(file => {
@@ -75,7 +75,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
         // Log informasi pesan masuk
         const msgType = Object.keys(m.message)[0]
         const isGroup = id.endsWith('@g.us')
-        await new Promise(resolve => setTimeout(resolve, 2000)); 
+        await new Promise(resolve => setTimeout(resolve, 2000));
         const groupName = isGroup ? (await cacheGroupMetadata(sock, id)).subject : 'Private Chat';
 
 
@@ -290,9 +290,6 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
                 }
                 break;
 
-            case 'ping':
-                await m.reply('Pong! 🏓');
-                break;
 
             case '#': // Untuk exec
                 try {
@@ -616,7 +613,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
                         let pp = await sock.profilePictureUrl(who, 'image');
                         await sock.sendMessage(m.chat, {
                             image: { url: pp },
-                            caption: `*Profile Picture*\n@${who.split('@')[0]}`,
+                            caption: `*Profile Picture*\n ${m.quoted?.pushName || m.pushName || who.split('@')[0]}`,
                             mentions: [who],
                             contextInfo: {
                                 externalAdReply: {
@@ -749,13 +746,13 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
             case 'd':
                 try {
                     // Cek apakah pengirim adalah admin atau owner
-                    if (!(await m.isAdmin()) && !(await m.isOwner())) {
+                    if (!(await m.isAdmin) && !(await m.isOwner)) {
                         await m.reply('❌ *Akses ditolak*\nHanya admin & owner yang dapat menghapus pesan!');
                         return;
                     }
 
                     // Cek apakah bot adalah admin
-                    if (!(await m.isBotAdmin())) {
+                    if (!(await m.isBotAdmin)) {
                         await m.reply('❌ Bot harus menjadi admin untuk menghapus pesan!');
                         return;
                     }
@@ -842,7 +839,7 @@ export async function startBot() {
 
                     if (shouldReconnect) {
                         logger.info(`♻️ Mencoba menyambungkan kembali...`);
-                        startBot();
+                        await startBot();
                     } else {
                         logger.error(`🚫 Sesi kadaluarsa. Harap login Ulang.`);
                         process.exit(1);

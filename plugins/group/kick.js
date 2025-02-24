@@ -1,7 +1,7 @@
 import Database from '../../helper/database.js'
 
 export const handler = {
-    command: 'kick',
+    command: ['dor','kick'],
     tags: ['admin', 'group'],
     help: 'Mengeluarkan member dari grup',
     isAdmin: true,
@@ -13,7 +13,7 @@ export const handler = {
             let userJid
             
             if (m.quoted) {
-                userJid = m.quoted.participant
+                userJid = m.quoted?.key?.participant
             }
             else if (args) {
                 userJid = args.replace('@', '') + '@s.whatsapp.net'
