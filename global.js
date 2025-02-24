@@ -2,7 +2,7 @@
 globalThis.owner = "Nama Lu Cik";
 globalThis.botName = "Sonata Bot";
 globalThis.ownerNumber = ["62895395590009"]
-globalThis.botNumber = "628157695152"
+globalThis.botNumber = "62895395590009"
 globalThis.sessionName = 'sonata-bot'
 globalThis.ppUrl = 'https://telegra.ph/file/8360caca1efd0f697d122.jpg'
 globalThis.bannerUrl = 'https://telegra.ph/file/8360caca1efd0f697d122.jpg'

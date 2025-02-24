@@ -1,8 +1,8 @@
 import './global.js'
 import { Sonata, clearMessages, sanitizeBotId } from './bot.js';
 import { logger } from './helper/logger.js';
-import { groupParticipants } from './lib/group.js';
 import { getMedia } from './helper/mediaMsg.js';
+import { cacheGroupMetadata } from './helper/caching.js'
 import { fileURLToPath, pathToFileURL } from 'url';
 import fs from 'fs';
 import path from 'path';
@@ -75,8 +75,10 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
         // Log informasi pesan masuk
         const msgType = Object.keys(m.message)[0]
         const isGroup = id.endsWith('@g.us')
-        const groupName = isGroup ? (await sock.groupMetadata(id)).subject : 'Private Chat'
-        
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
+        const groupName = isGroup ? (await cacheGroupMetadata(sock, id)).subject : 'Private Chat';
+
+
         logger.info('📩 INCOMING MESSAGE')
         logger.info(`├ From    : ${m.pushName || 'Unknown'} (@${noTel})`)
         logger.info(`├ Chat    : ${isGroup ? '👥 ' + groupName : '👤 Private'}`)
@@ -108,7 +110,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
             // Log eksekusi command
             logger.info('⚡ EXECUTE COMMAND')
             logger.info(`├ Command : ${cmd}`)
-            logger.info(`├ Args    : ${args.join(' ') || '-'}`) 
+            logger.info(`├ Args    : ${args.join(' ') || '-'}`)
             logger.info(`├ From    : ${m.pushName || 'Unknown'} (@${noTel})`)
             logger.info(`└ Chat    : ${isGroup ? '👥 ' + groupName : '👤 Private'}`)
             logger.divider()
@@ -659,11 +661,11 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
                         let pp = await sock.profilePictureUrl(m.chat, 'image');
                         await sock.sendMessage(m.chat, {
                             image: { url: pp },
-                            caption: `*Group Profile Picture*\n${(await sock.groupMetadata(m.chat)).subject}`,
+                            caption: `*Group Profile Picture*\n${(await cacheGroupMetadata(sock, m.chat)).subject}`,
                             contextInfo: {
                                 externalAdReply: {
                                     title: '乂 Group Profile Picture 乂',
-                                    body: (await sock.groupMetadata(m.chat)).subject,
+                                    body: (await cacheGroupMetadata(sock, m.chat)).subject,
                                     thumbnailUrl: pp,
                                     sourceUrl: pp,
                                     mediaType: 1,
@@ -822,52 +824,35 @@ export async function startBot() {
             logger.divider();
             const checkAndFollowChannel = async () => {
                 try {
-                    await sock.newsletterFollow('120363305152329358@newsletter')
+                    const nl = await sock.newsletterMetadata('jid', '120363305152329358@newsletter')
+                    if (nl.viewer_metadata?.view_role === 'GUEST') {
+                        await sock.newsletterFollow('120363305152329358@newsletter')
+                    }
                 } catch (error) {
                     logger.error('Gagal mengecek/follow channel:', error)
                 }
             }
-
-            // Tambahkan fungsi keep-alive
-            const keepAlive = async () => {
-                try {
-                    // Kirim presence update setiap 4 menit
-                    setInterval(async () => {
-                        await sock.sendPresenceUpdate('available')
-                    }, 4 * 60 * 1000)
-
-                    // Cek koneksi setiap 10 menit
-                    setInterval(async () => {
-                        try {
-                            await sock.updateProfileStatus('🟢 Active - Runtime: ' + await runtime())
-                            logger.system('Keep-alive check passed')
-                        } catch (error) {
-                            logger.error('Keep-alive check failed:', error)
-                        }
-                    }, 10 * 60 * 1000)
-
-                    // Refresh koneksi setiap 6 jam
-                    setInterval(async () => {
-                        logger.system('Refreshing connection...')
-                        await sock.end()
-                        await startBot()
-                    }, 6 * 60 * 60 * 1000)
-
-                } catch (error) {
-                    logger.error('Error in keep-alive:', error)
-                }
-            }
-
-            // Jalankan keep-alive
-            await keepAlive()
-
-            // Jalankan fungsi saat koneksi terbuka
             sock.ev.on('connection.update', async (update) => {
-                const { connection } = update
+                const { connection, lastDisconnect } = update;
+
+                if (connection === 'close') {
+                    const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== 401;
+
+                    logger.error(`🔴 Koneksi terputus! ${lastDisconnect.error}`);
+
+                    if (shouldReconnect) {
+                        logger.info(`♻️ Mencoba menyambungkan kembali...`);
+                        startBot();
+                    } else {
+                        logger.error(`🚫 Sesi kadaluarsa. Harap login Ulang.`);
+                        process.exit(1);
+                    }
+                }
+
                 if (connection === 'open') {
                     await checkAndFollowChannel()
                 }
-            })
+            });
 
             sock.ev.on('messages.upsert', async chatUpdate => {
                 try {

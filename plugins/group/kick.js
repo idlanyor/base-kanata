@@ -12,11 +12,9 @@ export const handler = {
         try {
             let userJid
             
-            // Cek jika ada quoted message
             if (m.quoted) {
                 userJid = m.quoted.participant
             }
-            // Jika tidak ada quoted, cek mention
             else if (args) {
                 userJid = args.replace('@', '') + '@s.whatsapp.net'
             }
