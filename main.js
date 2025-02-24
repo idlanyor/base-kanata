@@ -73,18 +73,18 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
         if (!command) return;
 
         // Log informasi pesan masuk
-        const msgType = Object.keys(m.message)[0]
-        const isGroup = id.endsWith('@g.us')
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        const groupName = isGroup ? (await cacheGroupMetadata(sock, id)).subject : 'Private Chat';
+        // const msgType = Object.keys(m.message)[0]
+        // const isGroup = id.endsWith('@g.us')
+        // await new Promise(resolve => setTimeout(resolve, 2000));
+        // const groupName = isGroup ? (await cacheGroupMetadata(sock, id)).subject : 'Private Chat';
 
 
-        logger.info('📩 INCOMING MESSAGE')
-        logger.info(`├ From    : ${m.pushName || 'Unknown'} (@${noTel})`)
-        logger.info(`├ Chat    : ${isGroup ? '👥 ' + groupName : '👤 Private'}`)
-        logger.info(`├ Type    : ${msgType}`)
-        logger.info(`└ Content : ${command}`)
-        logger.divider()
+        // logger.info('📩 INCOMING MESSAGE')
+        // logger.info(`├ From    : ${m.pushName || 'Unknown'} (@${noTel})`)
+        // logger.info(`├ Chat    : ${isGroup ? '👥 ' + groupName : '👤 Private'}`)
+        // logger.info(`├ Type    : ${msgType}`)
+        // logger.info(`└ Content : ${command}`)
+        // logger.divider()
 
         // Cek mode bot
         const settings = await Database.getSettings()
@@ -875,10 +875,6 @@ export async function startBot() {
 
                     // Cek apakah pesan dari bot sendiri
                     const botId = sanitizeBotId(sock.user.id);
-                    if (m.sender === botId) {
-                        logger.info('Pesan dari bot sendiri, abaikan');
-                        return;
-                    }
 
                     if (mediaTypes.includes(m.type)) {
                         const messageType = `${m.type}Message`;
