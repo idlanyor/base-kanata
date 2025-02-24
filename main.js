@@ -839,7 +839,6 @@ export async function startBot() {
 
                     if (shouldReconnect) {
                         logger.info(`♻️ Mencoba menyambungkan kembali...`);
-                        await startBot();
                     } else {
                         logger.error(`🚫 Sesi kadaluarsa. Harap login Ulang.`);
                         process.exit(1);
