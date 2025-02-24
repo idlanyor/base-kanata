@@ -867,11 +867,11 @@ export async function startBot() {
                     const mediaTypes = ['image', 'video', 'audio'];
 
                     // Cek tipe chat dan sender
-                    if (m.isGroup) {
-                        logger.info(`Pesan grup di: ${remoteJid}\nDari: ${m.senderNumber}`);
-                    } else {
-                        logger.info(`Pesan private dari: ${m.senderNumber}`);
-                    }
+                    // if (m.isGroup) {
+                    //     logger.info(`Pesan grup di: ${remoteJid}\nDari: ${m.senderNumber}`);
+                    // } else {
+                    //     logger.info(`Pesan private dari: ${m.senderNumber}`);
+                    // }
 
                     // Cek apakah pesan dari bot sendiri
                     const botId = sanitizeBotId(sock.user.id);
