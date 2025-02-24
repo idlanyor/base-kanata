@@ -95,7 +95,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
         }
 
         if (settings.botMode === 'self-private') {
-            if (id.endsWith('@g.us') && !isOwner) {
+            if (id.endsWith('@g.us')) {
                 return
             }
         }
