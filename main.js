@@ -88,7 +88,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
 
         // Cek mode bot
         const settings = await Database.getSettings()
-        const isOwner = await m.isOwner()
+        const isOwner = await m.isOwner
 
         if (settings.botMode === 'self-me' && !isOwner) {
             return
@@ -293,7 +293,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
 
             case '#': // Untuk exec
                 try {
-                    if (!await m.isOwner()) {
+                    if (!await m.isOwner) {
                         await m.reply('❌ Perintah ini hanya untuk owner bot!');
                         return;
                     }
@@ -320,7 +320,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
 
             case '=>': // Untuk eval
                 try {
-                    if (!await m.isOwner()) {
+                    if (!await m.isOwner) {
                         await m.reply('❌ Perintah ini hanya untuk owner bot!');
                         return;
                     }
