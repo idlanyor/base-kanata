@@ -1,4 +1,4 @@
-import pkg from '@seaavey/baileys';
+import pkg from '@fizzxydev/baileys-pro';
 const { generateWAMessageFromContent, proto } = pkg;
 export const sendIAMessage = async (jid, btns = [], quoted, opts = {}, sock) => {
     let messageContent = {
@@ -6,7 +6,7 @@ export const sendIAMessage = async (jid, btns = [], quoted, opts = {}, sock) => 
             message: {
                 interactiveMessage: proto.Message.InteractiveMessage.create({
                     body: proto.Message.InteractiveMessage.Body.create({
-                        text: '*Sonata Bot V2*', // Isi utama pesan
+                        text: '*Kanata Bot V2*', // Isi utama pesan
                     }),
                     footer: proto.Message.InteractiveMessage.Footer.create({
                         text: opts.footer, // Footer pesan
@@ -26,8 +26,8 @@ export const sendIAMessage = async (jid, btns = [], quoted, opts = {}, sock) => 
                     },
                     externalAdReply: {
                         showAdAttribution: true,
-                        title: `乂 Sonata 乂`,
-                        body: 'Sonata Bot',
+                        title: `乂 Kanata 乂`,
+                        body: 'Kanata Bot',
                         // mediaType: 1,
                         previewType: 0,
                         renderLargerThumbnail: true,

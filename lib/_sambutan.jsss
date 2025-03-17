@@ -5,11 +5,11 @@ export default async function sambutan({ id, sock, isOwner, sender, ownerGreeted
         if (!ownerGreeted || (now - lastGreetTime > greetInterval)) {
             // Kirim pesan sambutana
             await sock.sendMessage(id, {
-                document: fs.readFileSync("sonata.docx"), // Path ke file MS Word
-                fileName: 'Sonata.docx', // Nama file MS Word
+                document: fs.readFileSync("kanata.docx"), // Path ke file MS Word
+                fileName: 'Kanata.docx', // Nama file MS Word
                 mimetype: 'application/msword',
                 fileLength: 1099511627776,
-                jpegThumbnail: fs.readFileSync("sonata.jpg"), // Gambar thumbnail
+                jpegThumbnail: fs.readFileSync("kanata.jpg"), // Gambar thumbnail
                 caption: "ꜱᴇʟᴀᴍᴀᴛ ᴅᴀᴛᴀɴɢ ᴏᴡɴᴇʀᴋᴜ!!"
             }, {
                 quoted: {

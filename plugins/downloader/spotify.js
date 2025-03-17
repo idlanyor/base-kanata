@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { spotifyDownload } from '../../lib/scraper/spotify.js';
 export const handler = {
     command: ['play', 'spotify'],
     tags: ['downloader'],
@@ -6,7 +7,7 @@ export const handler = {
     exec: async ({ sock, m, args }) => {
         try {
             console.log(args)
-            if (!args) {
+            if (!args || args.length === 0) {
                 await m.reply('🎵 Masukkan judul lagu yang ingin diputar\n*Contoh:* !play JKT48 Heavy Rotation');
                 return;
             }
@@ -17,21 +18,22 @@ export const handler = {
             });
 
             // Mencari lagu
-            await m.reply(`🔍 Sedang mencari *${args}* di Spotify...`);
-            
             const { thumbnail, title, author, audio } = await spotifySong(args);
             if (!audio) {
-                throw new Error('Lagu tidak ditemukan atau tidak bisa diunduh');
+                await m.reply('❌ Lagu tidak ditemukan atau tidak bisa diunduh');
+                return;
             }
 
-            // Kirim thumbnail dan info
-            await m.reply({
-                text: `🎧 *SPOTIFY PLAY*
+            // Kirim thumbnail dan info serta audio dalam satu pesan
+            const messageText = `🎧 *SPOTIFY PLAY*
 
 🎵 *Judul:* ${title}
 👤 *Artis:* ${author}
 
-_Sedang mengirim audio, mohon tunggu..._`,
+_Sedang mengirim audio, mohon tunggu..._`;
+
+            await sock.sendMessage(m.chat, { 
+                text: messageText,
                 contextInfo: {
                     externalAdReply: {
                         title: '乂 Spotify Downloader 乂',
@@ -68,11 +70,6 @@ _Sedang mengirim audio, mohon tunggu..._`,
         } catch (error) {
             console.error('Error in spotify play:', error);
             await m.reply('❌ Gagal mengunduh lagu. Silakan coba lagi nanti.');
-            
-            // Kirim reaksi error
-            await sock.sendMessage(m.chat, { 
-                react: { text: '❌', key: m.key }
-            });
         }
     }
 }
@@ -84,25 +81,22 @@ async function spotifySong(query) {
         const { data: searchData } = await axios.get('https://fastrestapis.fasturl.cloud/music/spotify', {
             params: { name: query }
         });
-        
         if (!searchData?.result?.[0]?.url) {
             throw new Error('Lagu tidak ditemukan');
         }
 
-        // Unduh lagu dari URL Spotify
-        const { data: songData } = await axios.get('https://roy.sirandu.icu/api/spotify', {
-            params: { url: searchData.result[0].url }
-        });
+        // Unduh lagu dari URL Spotify menggunakan spotifyDownload
+        const songData = await spotifyDownload(searchData.result[0].url);
 
-        if (!songData?.result?.downloadMp3) {
-            throw new Error('Gagal mengunduh lagu');
-        }
+        // if (!songData.status || !songData.data.downloadUrl) {
+        //     throw new Error('Gagal mengunduh lagu');
+        // }
 
         return {
-            thumbnail: songData.result.coverImage || `${globalThis.ppUrl}`,
-            title: songData.result.title || query,
-            author: songData.result.artist || 'Unknown Artist',
-            audio: songData.result.downloadMp3
+            thumbnail: songData.data.coverImage || `${globalThis.ppUrl}`,
+            title: songData.data.title || query,
+            author: songData.data.artist || 'Unknown Artist',
+            audio: songData.data.downloadUrl
         };
 
     } catch (error) {

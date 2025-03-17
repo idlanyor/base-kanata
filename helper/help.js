@@ -57,13 +57,13 @@ export async function helpMessage() {
     const plugins = await loadPlugins(pluginsDir);
     // console.log(plugins)
 
-    let caption = "🌟 Hai, aku Sonata! Senang sekali bisa membantu kamu hari ini. Berikut adalah daftar perintah yang bisa kamu gunakan:\n";
+    let caption = "🌟 Hai, aku Kanata! Senang sekali bisa membantu kamu hari ini. Berikut adalah daftar perintah yang bisa kamu gunakan:\n";
 
-    for (const sonata in plugins) {
+    for (const kanata in plugins) {
         // Nambah header folder
-        caption += `❏┄┅━┅┄〈 〘 ${sonata.toUpperCase()} 〙\n`;
+        caption += `❏┄┅━┅┄〈 〘 ${kanata.toUpperCase()} 〙\n`;
 
-        plugins[sonata].forEach(plugin => {
+        plugins[kanata].forEach(plugin => {
             const command = plugin.handler; 
             caption += `- *${command}*\n`;
         });

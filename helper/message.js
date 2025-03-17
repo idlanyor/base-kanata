@@ -1,5 +1,5 @@
 import Database from './database.js'
-import pkg from '@seaavey/baileys'
+import pkg from '@fizzxydev/baileys-pro'
 const { generateWAMessageFromContent, proto } = pkg
 
 export function addMessageHandler(m, sock) {

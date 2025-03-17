@@ -1,12 +1,12 @@
-// import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, makeInMemoryStore, useMultiFileAuthState, DisconnectReason, Browsers } from "@seaavey/baileys";
-import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, makeInMemoryStore, useMultiFileAuthState, DisconnectReason, Browsers } from '@seaavey/baileys';
+// import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, makeInMemoryStore, useMultiFileAuthState, DisconnectReason, Browsers } from "@fizzxydev/baileys-pro";
+import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, makeInMemoryStore, useMultiFileAuthState, DisconnectReason, Browsers } from '@fizzxydev/baileys-pro';
 import pino from "pino";
 import NodeCache from "node-cache";
 import chalk from 'chalk';
 import fs from 'fs-extra'; // tambah nggo file handling
 import { startBot } from "../main.js";
 
-class Sonata {
+class Kanata {
     constructor(data, io = null) {
         this.phoneNumber = data.phoneNumber;
         this.sessionId = data.sessionId;
@@ -217,4 +217,4 @@ async function clearMessages(m) {
 }
 const sanitizeBotId = botId => botId.split(":")[0] + "@s.whatsapp.net";
 
-export { Sonata, clearMessages, sanitizeBotId };
+export { Kanata, clearMessages, sanitizeBotId };

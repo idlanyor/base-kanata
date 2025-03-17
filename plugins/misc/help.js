@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'url'
 import path from 'path'
 import fs from 'fs'
-import pkg from '@seaavey/baileys'
+import pkg from '@fizzxydev/baileys-pro'
 const { proto, generateWAMessageFromContent } = pkg
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))

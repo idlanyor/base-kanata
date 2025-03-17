@@ -101,7 +101,7 @@ export const handler = {
 
             // Kirim pesan respon
             await sock.sendMessage(id, { 
-                text: `*🤖 SONATA BOT STATUS*\n\n` +
+                text: `*🤖 KANATA BOT STATUS*\n\n` +
                       `*⚡ Response Time:* ${ping} detik\n\n` +
                       `*💻 Host Information*\n` +
                       `➸ *Hostname:* ${sysInfo.host.name}\n` +
@@ -119,12 +119,12 @@ export const handler = {
                       `➸ *Used RAM:* ${sysInfo.ram.used}\n` +
                       `➸ *Free RAM:* ${sysInfo.ram.free}\n\n` +
                       `*⏰ Uptime:* ${sysInfo.uptime.hours}h ${sysInfo.uptime.minutes}m ${sysInfo.uptime.seconds}s\n\n` +
-                      `_Powered by Sonata Bot_`,
+                      `_Powered by Kanata Bot_`,
                 contextInfo: {
                     isForwarded: true,
                     forwardingScore: 9999999,
                     externalAdReply: {
-                        title: `乂 Sonata Bot Status 乂`,
+                        title: `乂 Kanata Bot Status 乂`,
                         body: `Response Time: ${ping}s`,
                         mediaType: 1,
                         previewType: 0,

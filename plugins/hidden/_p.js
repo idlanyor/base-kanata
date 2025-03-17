@@ -11,9 +11,7 @@ export const handler = {
     exec: async ({ sock, m, id }) => {
         try {
             await sock.sendMessage(id, { 
-                audio: { url: await loadAssets('anjay.mp3', 'voice') }, 
-                mimetype: 'audio/mp4', 
-                fileName: "anjay" 
+               text: 'anjay', 
             }, { quoted: m });
 
         } catch (error) {

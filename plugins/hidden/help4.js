@@ -65,7 +65,7 @@ export const handler = {
                           hours >= 11 && hours < 15 ? 'Siang' :
                           hours >= 15 && hours < 18 ? 'Sore' : 'Malam'
 
-            menuText = `╭─「 *SONATA BOT* 」
+            menuText = `╭─「 *KANATA BOT* 」
 │
 │ 👋 Hai @${noTel}!
 │ Selamat ${greeting}
@@ -99,7 +99,7 @@ export const handler = {
                 contextInfo: {
                     externalAdReply: {
                         title: '乂 Menu List 乂',
-                        body: 'Sonata Bot',
+                        body: 'Kanata Bot',
                         thumbnailUrl: `${globalThis.ppUrl}`,
                         sourceUrl: `${globalThis.newsletterUrl}`,
                         mediaType: 1,

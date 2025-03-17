@@ -1,10 +1,10 @@
 import './global.js'
-import { Sonata, clearMessages, sanitizeBotId } from './bot.js';
+import { Kanata, clearMessages, sanitizeBotId } from './bot.js';
 import { logger } from './helper/logger.js';
 import { getMedia } from './helper/mediaMsg.js';
 import { cacheGroupMetadata } from './helper/caching.js'
 import { fileURLToPath, pathToFileURL } from 'url';
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
 import readline from 'readline';
@@ -14,6 +14,7 @@ import Database from './helper/database.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import util from 'util';
+import { processMessageWithAI } from './helper/gemini.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -100,6 +101,13 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
             }
         }
 
+        // Coba proses dengan Gemini AI terlebih dahulu
+        if (m.key.fromMe) return
+        const aiResult = await processMessageWithAI(command, m.sender);
+        if (aiResult) {
+            command = '!' + aiResult.command + ' ' + aiResult.args;
+        }
+
         let cmd = '';
         let args = [];
 
@@ -112,7 +120,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
             logger.info(`├ Command : ${cmd}`)
             logger.info(`├ Args    : ${args.join(' ') || '-'}`)
             logger.info(`├ From    : ${m.pushName || 'Unknown'} (@${noTel})`)
-            logger.info(`└ Chat    : ${isGroup ? '👥 ' + groupName : '👤 Private'}`)
+            logger.info(`└ Chat    : ${id.endsWith('@g.us') ? '👥 Group' : '👤 Private'}`)
             logger.divider()
         } else {
             [cmd, ...args] = command.split(' ');
@@ -186,7 +194,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
             case 'help2':
             case 'h2':
                 try {
-                    const botName = "Sonata Bot";
+                    const botName = "Kanata Bot";
                     const owner = globalThis.owner;
                     const prefix = "!";
                     const settings = await Database.getSettings();
@@ -290,6 +298,21 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
                 }
                 break;
 
+            case 'chat':
+                try {
+                    // Pastikan args adalah string
+                    const messageText = Array.isArray(args) ? args.join(' ') : args;
+                    await m.reply(messageText);
+                } catch (error) {
+                    logger.error("Error in chat:", error);
+                    // Fallback ke pengiriman teks biasa jika terjadi error
+                    try {
+                        await m.reply("Maaf, terjadi kesalahan saat mengirim pesan. Silakan coba lagi.");
+                    } catch (fallbackError) {
+                        logger.error("Fallback error:", fallbackError);
+                    }
+                }
+                break;
 
             case '#': // Untuk exec
                 try {
@@ -810,7 +833,7 @@ export async function startBot() {
     try {
         logger.showBanner();
         const phoneNumber = await getPhoneNumber();
-        const bot = new Sonata({
+        const bot = new Kanata({
             phoneNumber,
             sessionId: globalThis.sessionName,
             useStore: false
@@ -841,6 +864,8 @@ export async function startBot() {
                         logger.info(`♻️ Mencoba menyambungkan kembali...`);
                     } else {
                         logger.error(`🚫 Sesi kadaluarsa. Harap login Ulang.`);
+                        await fs.remove(`./${globalThis.sessionName}`);
+                        await startBot();
                         process.exit(1);
                     }
                 }
@@ -863,7 +888,7 @@ export async function startBot() {
                     const { remoteJid } = m.key;
                     const sender = m.pushName || remoteJid;
                     const id = remoteJid;
-                    const noTel = (id.endsWith('@g.us')) ? m.key.participant.split('@')[0].replace(/[^0-9]/g, '') : remoteJid.split('@')[0].replace(/[^0-9]/g, '');
+                    const noTel = (id.endsWith('@g.us')) ? m.key.participant?.split('@')[0]?.replace(/[^0-9]/g, '') : id.split('@')[0]?.replace(/[^0-9]/g, '');
                     const mediaTypes = ['image', 'video', 'audio'];
 
                     // Cek tipe chat dan sender

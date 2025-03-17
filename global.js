@@ -1,6 +1,6 @@
 // variabel dasar
-globalThis.owner = "Nama Lu Cik";
-globalThis.botName = "Sonata Bot";
+globalThis.owner = "Kanata Universe";
+globalThis.botName = "Kanata Bot";
 globalThis.ownerNumber = ["62895395590009"]
 globalThis.botNumber = "62895395590009"
 globalThis.sessionName = 'sonata-bot'
@@ -16,7 +16,7 @@ globalThis.isBot = async (id) => {
 }
 // variabel apikey
 globalThis.apiKey = {
-    gemini: '',
+    gemini: 'AIzaSyBmiAY7nBuRDVne17wfTsNdGeSVdw8jj8I',
     gpt: '',
     mistral: '',
     removeBG: '',
@@ -61,3 +61,6 @@ globalThis.apiHelper = {
     }
 
 }
+
+// Gemini AI Configuration
+process.env.GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY' // Ganti dengan API key Anda

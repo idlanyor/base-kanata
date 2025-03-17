@@ -1,9 +1,9 @@
 // variabel dasar
 globalThis.owner = "Nama Lu Cik";
-globalThis.botName = "Sonata Bot";
+globalThis.botName = "Kanata Bot";
 globalThis.ownerNumber = ["62895395590009"]
 globalThis.botNumber = "628157695152"
-globalThis.sessionName = 'sonata-bot'
+globalThis.sessionName = 'kanata-bot'
 globalThis.ppUrl = 'https://telegra.ph/file/8360caca1efd0f697d122.jpg'
 globalThis.bannerUrl = 'https://telegra.ph/file/8360caca1efd0f697d122.jpg'
 globalThis.newsletterUrl = 'https://whatsapp.com/channel/0029VagADOLLSmbaxFNswH1m'

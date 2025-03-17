@@ -1,11 +1,11 @@
-import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, makeInMemoryStore, useMultiFileAuthState, DisconnectReason, Browsers, getAggregateVotesInPollMessage } from '@seaavey/baileys';
+import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, makeInMemoryStore, useMultiFileAuthState, DisconnectReason, Browsers, getAggregateVotesInPollMessage } from '@fizzxydev/baileys-pro';
 import pino from "pino";
 import NodeCache from "node-cache";
 import fs from 'fs-extra';
 import { startBot } from "./main.js";
 import { logger } from './helper/logger.js';
 
-class Sonata {
+class Kanata {
     constructor(data) {
         this.phoneNumber = data.phoneNumber;
         this.sessionId = data.sessionId;
@@ -55,6 +55,11 @@ class Sonata {
             connectOptions: {
                 maxRetries: 5,
                 keepAlive: true,
+                connectTimeoutMs: 60000,
+                retryDelayMs: 2000,
+                patchBeforeConnect: true,
+                qrTimeout: 40000,
+                defaultQueryTimeoutMs: 60000
             },
             getMessage: async (key) => await getMessageFromStore(key)
         });
@@ -75,7 +80,7 @@ class Sonata {
             while (retryCount < maxRetries) {
                 try {
                     await delay(6000);
-                    const code = await sock.requestPairingCode(number);
+                    const code = await sock.requestPairingCode(number,'ROYNALDI');
                     logger.connection.pairing(code);
                     break;
                 } catch (err) {
@@ -102,8 +107,8 @@ class Sonata {
                     logger.error("Sesi ora valid, bakal dihapus...");
 
                     // Hapus folder sesi kalo sesi logout
-                    await fs.remove(`./${this.sessionId}`);
                     logger.warning(`Folder sesi ${this.sessionId} dihapus, login ulang...`);
+                    await fs.remove(`./${this.sessionId}`);
 
                     // Login ulang tanpa nge-delay
                     logger.success("Login ulang berhasil. Eksekusi tugas selanjutnya...");
@@ -185,4 +190,4 @@ async function clearMessages(m) {
 }
 const sanitizeBotId = botId => botId.split(":")[0] + "@s.whatsapp.net";
 
-export { Sonata, clearMessages, sanitizeBotId };
+export { Kanata, clearMessages, sanitizeBotId };

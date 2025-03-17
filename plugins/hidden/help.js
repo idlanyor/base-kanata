@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'url'
 import path from 'path'
 import fs from 'fs'
-import pkg from '@seaavey/baileys'
+import pkg from '@fizzxydev/baileys-pro'
 const { proto, generateWAMessageFromContent } = pkg
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -99,7 +99,7 @@ export const handler = {
                     if (!categories[category]) continue
 
                     const commands = Array.isArray(plugin.handler.command) ? 
-                        plugin.handler.command : 
+                        [plugin.handler.command[0]] : // Ambil command pertama saja jika array
                         [plugin.handler.command]
 
                     categories[category].push({
@@ -124,11 +124,12 @@ export const handler = {
                 for (const [category, plugins] of Object.entries(categories)) {
                     for (const plugin of plugins) {
                         const cmdList = Array.isArray(plugin.commands) ? 
-                            plugin.commands : [plugin.commands]
+                            [plugin.commands[0]] : // Ambil command pertama saja jika array
+                            [plugin.commands]
                             
                         if (cmdList.includes(searchCmd)) {
                             let detailMenu = `📚 *Command Detail*\n\n`
-                            detailMenu += `Command: ${cmdList.join(', ')}\n`
+                            detailMenu += `Command: ${cmdList[0]}\n` // Tampilkan command pertama saja
                             detailMenu += `Description: ${plugin.help}\n`
                             detailMenu += `Category: ${category}\n`
                             detailMenu += `Tags: ${plugin.tags?.join(', ') || '-'}\n\n`
@@ -146,10 +147,10 @@ export const handler = {
                     if (found) break
                 }
 
-                if (!found) {
-                    await m.reply(`❌ Command "${args}" not found`)
-                }
-                return
+                // if (!found) {
+                //     await m.reply(`❌ Command "${args}" not found`)
+                // }
+                // return
             }
 
             let menuText = ''
@@ -162,12 +163,12 @@ export const handler = {
                 
                 // Tambahkan setiap command
                 for (const plugin of plugins) {
-                    const cmdList = Array.isArray(plugin.commands) ? plugin.commands : [plugin.commands]
+                    const cmdList = Array.isArray(plugin.commands) ? 
+                        [plugin.commands[0]] : // Ambil command pertama saja jika array
+                        plugin.commands
                     
-                    for (const cmd of cmdList) {
-                        menuText += `├ !${cmd}\n`
-                        menuText += `│ ${plugin.help || 'Tidak ada deskripsi'}\n`
-                    }
+                    menuText += `├ !${cmdList[0]}\n` // Tampilkan command pertama saja
+                    menuText += `│ ${plugin.help || 'Tidak ada deskripsi'}\n`
                 }
                 
                 menuText += '└──────────────\n'
@@ -182,9 +183,9 @@ export const handler = {
             else greeting = 'Malam'
 
             await sock.sendMessage(m.chat, {
-                video: await fetch('https://fastrestapis.fasturl.cloud/file/v1/ZuI20w4'),
-                gifPlayback: true,
-                gifAttribution: 'SONATA.BOT',
+                image: await fetch('https://files.catbox.moe/zpjs9i.jpeg'),
+                // gifPlayback: true,
+                // gifAttribution: 'KANATA.BOT',
                 caption: `╭─「 KANATA BOT 」
 ├ Selamat ${greeting} 👋
 ├ @${noTel}
