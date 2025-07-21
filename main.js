@@ -69,6 +69,20 @@ async function getPhoneNumber() {
     }
 }
 
+/**
+ * Processes and executes bot commands received from WhatsApp messages.
+ *
+ * This function handles incoming commands by checking bot mode and permissions, dynamically loading and dispatching to plugin handlers, and executing built-in commands for menu display, chat, shell execution, audio effects, profile picture retrieval, AI queries, and message deletion. If a matching plugin or built-in command is found, it performs the corresponding action and replies to the user. Handles permission checks for admin, owner, and group-only commands, and manages temporary files for audio processing.
+ *
+ * @param {Object} params - The command context.
+ * @param {string} params.command - The command string to process.
+ * @param {Object} params.sock - The WhatsApp socket connection.
+ * @param {Object} params.m - The message object containing metadata and helper methods.
+ * @param {string} params.id - The chat ID.
+ * @param {string} params.sender - The sender's WhatsApp ID.
+ * @param {string} params.noTel - The sender's phone number.
+ * @param {Object} params.attf - Additional attachment or context information.
+ */
 async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
     try {
         if (!command) return;
