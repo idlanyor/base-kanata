@@ -341,56 +341,17 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
                 }
                 break;
 
-            case '=>': // Untuk eval
+            case '=>': // Untuk eval - DEPRECATED for security
                 try {
                     if (!await m.isOwner) {
                         await m.reply('❌ Perintah ini hanya untuk owner bot!');
                         return;
                     }
 
-                    const evalCode = args.join(' ');
-                    if (!evalCode) {
-                        await m.reply('❌ Masukkan kode yang akan dieval!');
-                        return;
-                    }
-
-                    // Buat context untuk eval
-                    const context = {
-                        sock, m, id: m.chat, sender, noTel,
-                        console: {
-                            ...console,
-                            log: (...args) => {
-                                sock.sendMessage(m.chat, {
-                                    text: `📤 *CONSOLE.LOG*\n\n${args.join(' ')}`
-                                });
-                            }
-                        }
-                    };
-
-                    // Format kode
-                    let code = evalCode;
-                    if (!code.includes('return')) {
-                        if (!code.includes(';')) code = 'return ' + code;
-                    }
-                    code = `(async () => { try { ${code} } catch(e) { return e } })()`;
-
-                    // Eval kode
-                    const result = await eval(code);
-                    let output = '✅ *RESULT*\n\n';
-
-                    if (result?.stack) {
-                        output = `❌ *ERROR*\n\n${result.stack}`;
-                    } else if (typeof result === 'string') {
-                        output += result;
-                    } else if (typeof result === 'object') {
-                        output += JSON.stringify(result, null, 2);
-                    } else {
-                        output += util.format(result);
-                    }
-
-                    await m.reply(output);
+                    // Redirect to safer eval plugin
+                    await m.reply('❌ *DEPRECATED FOR SECURITY*\n\nEval functionality in main.js has been disabled due to security concerns. Please use the safer ">" command from the eval plugin instead.');
                 } catch (error) {
-                    await m.reply(`❌ *ERROR*\n\n${error.stack}`);
+                    await m.reply(`❌ *ERROR*\n\n${error.message}`);
                 }
                 break;
 

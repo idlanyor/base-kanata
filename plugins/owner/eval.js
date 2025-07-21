@@ -2,7 +2,7 @@ import util from 'util';
 
 export const handler = {
     command: ['>'],
-    help: 'Evaluasi kode JavaScript\n\nCara penggunaan:\n> <kode>\n\nContoh:\n> 1 + 1\n> console.log("Hello")',
+    help: 'Evaluasi kode JavaScript (Aman)\n\nCara penggunaan:\n> <kode>\n\nContoh:\n> 1 + 1\n> Math.max(1, 2, 3)',
     tags: ['owner'],
     
     isOwner: true,
@@ -16,38 +16,79 @@ export const handler = {
 
             const evalCode = args.join(' ');
             
-            // Buat context untuk eval
-            const context = {
-                sock, m, id: m.chat, sender: m.sender, noTel: m.senderNumber,
-                console: {
-                    ...console,
-                    log: (...args) => {
-                        sock.sendMessage(m.chat, {
-                            text: `📤 *CONSOLE.LOG*\n\n${args.join(' ')}`
-                        });
+            // Security check: Block dangerous functions and keywords
+            const dangerousPatterns = [
+                /require\s*\(/i,
+                /import\s*\(/i,
+                /process\s*\./i,
+                /global\s*\./i,
+                /fs\s*\./i,
+                /child_process/i,
+                /exec\s*\(/i,
+                /spawn\s*\(/i,
+                /eval\s*\(/i,
+                /Function\s*\(/i,
+                /constructor/i,
+                /prototype/i,
+                /__proto__/i,
+                /this\s*\./i
+            ];
+
+            // Check for dangerous patterns
+            for (const pattern of dangerousPatterns) {
+                if (pattern.test(evalCode)) {
+                    await m.reply('❌ *SECURITY ERROR*\n\nKode yang Anda masukkan mengandung operasi yang tidak diizinkan untuk keamanan sistem.');
+                    return;
+                }
+            }
+
+            // Whitelist of allowed operations
+            const allowedGlobals = {
+                Math,
+                Date,
+                JSON,
+                Array,
+                Object,
+                String,
+                Number,
+                Boolean,
+                parseInt,
+                parseFloat,
+                isNaN,
+                isFinite
+            };
+
+            // Create safe evaluation function
+            const safeEval = (code) => {
+                try {
+                    // Simple arithmetic and basic operations only
+                    if (/^[\d\s+\-*/().]+$/.test(code)) {
+                        return Function('"use strict"; return (' + code + ')')();
                     }
+                    
+                    // For more complex but safe operations
+                    const func = new Function('globals', `
+                        "use strict";
+                        const {${Object.keys(allowedGlobals).join(',')}} = globals;
+                        return (${code});
+                    `);
+                    
+                    return func(allowedGlobals);
+                } catch (error) {
+                    throw error;
                 }
             };
 
-            // Format kode
-            let code = evalCode;
-            if (!code.includes('return')) {
-                if (!code.includes(';')) code = 'return ' + code;
-            }
-            code = `(async () => { try { ${code} } catch(e) { return e } })()`;
-
-            // Eval kode
-            const result = await eval(code);
+            // Execute safe evaluation
+            const result = safeEval(evalCode);
             let output = '✅ *RESULT*\n\n';
 
-            if (result?.stack) {
-                output = `❌ *ERROR*\n\n${result.stack}`;
-            } else if (typeof result === 'string') {
+            if (typeof result === 'string') {
                 output += result;
-            } else if (typeof result === 'object') {
+            } else if (typeof result === 'object' && result !== null) {
                 output += JSON.stringify(result, null, 2);
             } else {
-                output += util.format(result);
+                output += String(result);
             }
 
             await m.reply(output);
