@@ -12,6 +12,7 @@ const dbFile = join(dbFolder, 'db.json')
 const defaultData = {
   users: {},
   groups: {},
+  orders: {},
   stats: {
     commands: 0,
     messages: 0

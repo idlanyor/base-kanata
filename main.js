@@ -780,6 +780,68 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
                 }
                 break;
 
+            // Store commands
+            case 'catalog':
+            case 'katalog':
+                try {
+                    const { catalogCmd } = await import('./plugins/misc/store.js');
+                    await catalogCmd(sock, m);
+                } catch (error) {
+                    logger.error('Error in catalog command:', error);
+                    await m.reply('❌ Terjadi kesalahan saat menampilkan katalog.');
+                }
+                break;
+
+            case 'order':
+                try {
+                    const { orderCmd } = await import('./plugins/misc/store.js');
+                    await orderCmd(sock, m);
+                } catch (error) {
+                    logger.error('Error in order command:', error);
+                    await m.reply('❌ Terjadi kesalahan saat memproses pesanan.');
+                }
+                break;
+
+            case 'order-status':
+                try {
+                    const { orderStatusCmd } = await import('./plugins/misc/store.js');
+                    await orderStatusCmd(sock, m);
+                } catch (error) {
+                    logger.error('Error in order status command:', error);
+                    await m.reply('❌ Terjadi kesalahan saat mengecek status pesanan.');
+                }
+                break;
+
+            case 'my-orders':
+                try {
+                    const { myOrdersCmd } = await import('./plugins/misc/store.js');
+                    await myOrdersCmd(sock, m);
+                } catch (error) {
+                    logger.error('Error in my orders command:', error);
+                    await m.reply('❌ Terjadi kesalahan saat mengambil daftar pesanan.');
+                }
+                break;
+
+            case 'payment-done':
+                try {
+                    const { paymentDoneCmd } = await import('./plugins/misc/store.js');
+                    await paymentDoneCmd(sock, m);
+                } catch (error) {
+                    logger.error('Error in payment done command:', error);
+                    await m.reply('❌ Terjadi kesalahan saat memproses konfirmasi pembayaran.');
+                }
+                break;
+
+            case 'payment-cancel':
+                try {
+                    const { paymentCancelCmd } = await import('./plugins/misc/store.js');
+                    await paymentCancelCmd(sock, m);
+                } catch (error) {
+                    logger.error('Error in payment cancel command:', error);
+                    await m.reply('❌ Terjadi kesalahan saat membatalkan pembayaran.');
+                }
+                break;
+
             default:
                 // Perintah tidak ditemukan
                 break;
@@ -871,6 +933,16 @@ export async function startBot() {
                             const mediaBuffer = await getMedia({ message: { [messageType]: buffer } });
                             const caption = buffer.caption || m.message?.extendedTextMessage?.text;
                             const mime = buffer.mime || m.message?.extendedTextMessage?.contextInfo?.quotedMessage?.[messageType]?.mime;
+
+                            // Check if this is a payment proof image
+                            if (m.type === 'image' && !caption) {
+                                try {
+                                    const { handlePaymentProof } = await import('./plugins/misc/store.js');
+                                    await handlePaymentProof(sock, m);
+                                } catch (error) {
+                                    logger.error('Error handling payment proof:', error);
+                                }
+                            }
 
                             await prosesPerintah({
                                 command: caption,
