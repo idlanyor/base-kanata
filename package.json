@@ -6,31 +6,31 @@
   "type": "module",
   "private": "true",
   "scripts": {
-    "start": "node ."
+    "start": "bun ."
   },
   "keywords": [],
   "author": "Roynaldi",
   "license": "MIT",
   "dependencies": {
-    "@fizzxydev/baileys-pro": "^8.6.10",
-    "@google/generative-ai": "^0.24.0",
+    "@fizzxydev/baileys-pro": "npm:@neoxr/baileys@latest",
+    "@google/generative-ai": "^0.24.1",
     "@hapi/boom": "^10.0.1",
-    "@seaavey/baileys": "^6.6.5",
+    "@seaavey/baileys": "^6.6.91",
     "@vreden/youtube_scraper": "latest",
     "adm-zip": "^0.5.16",
-    "axios": "^1.7.9",
-    "chalk": "^5.3.0",
-    "figlet": "^1.8.0",
+    "axios": "^1.11.0",
+    "chalk": "^5.4.1",
+    "figlet": "^1.8.2",
     "fluent-ffmpeg": "^2.1.3",
-    "fs-extra": "^11.2.0",
+    "fs-extra": "^11.3.0",
     "gradient-string": "^3.0.0",
     "lowdb": "^7.0.1",
     "moment": "^2.30.1",
     "node-fetch": "^3.3.2",
-    "puppeteer": "^24.4.0",
+    "puppeteer": "^24.15.0",
     "wa-sticker-formatter": "^4.4.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.10"
   }
 }

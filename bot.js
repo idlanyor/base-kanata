@@ -1,4 +1,4 @@
-import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, makeInMemoryStore, useMultiFileAuthState, DisconnectReason, Browsers, getAggregateVotesInPollMessage } from '@fizzxydev/baileys-pro';
+import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, useMultiFileAuthState, DisconnectReason, Browsers, getAggregateVotesInPollMessage } from '@fizzxydev/baileys-pro';
 import pino from "pino";
 import NodeCache from "node-cache";
 import fs from 'fs-extra';
@@ -37,7 +37,7 @@ class Kanata {
             const loggerPino = MAIN_LOGGER.child({});
             loggerPino.level = "silent";
 
-            const store = useStore ? makeInMemoryStore({ logger: loggerPino }) : undefined;
+            const store = useStore ? false : undefined;
             store?.readFromFile(`store-${this.sessionId}.json`);
 
             setInterval(() => {
@@ -80,7 +80,6 @@ class Kanata {
                 getMessage: async (key) => await getMessageFromStore(key)
             });
 
-            store?.bind(this.sock.ev);
 
             this.sock.ev.on("creds.update", saveCreds);
 
