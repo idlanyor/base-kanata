@@ -6,10 +6,10 @@ import fs from 'fs/promises'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const dbFolder = join(__dirname, '../database')
-const dbFile = join(dbFolder, 'db.json')
+export const dbFile = join(dbFolder, 'db.json')
 
 // Struktur default database
-const defaultData = {
+export const defaultData = {
   users: {},
   groups: {},
   orders: {},
@@ -26,7 +26,7 @@ const defaultData = {
 }
 
 // Buat folder database jika belum ada
-async function initDatabase() {
+export async function initDatabase() {
   try {
     // Cek apakah folder database sudah ada
     try {

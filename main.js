@@ -13,8 +13,8 @@ import { addMessageHandler } from './helper/message.js';
 import Database from './helper/database.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import util from 'util';
-import { processMessageWithAI } from './helper/gemini.js';
+// import util from 'util';
+// import { processMessageWithAI } from './helper/gemini.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -103,15 +103,15 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
 
         // Coba proses dengan Gemini AI terlebih dahulu
         if (m.key.fromMe) return
-        const aiResult = await processMessageWithAI(command, m.sender);
-        if (aiResult) {
-            command = '!' + aiResult.command + ' ' + aiResult.args;
-        }
+        // const aiResult = await processMessageWithAI(command, m.sender);
+        // if (aiResult) {
+        //     command = '!' + aiResult.command + ' ' + aiResult.args;
+        // }
 
         let cmd = '';
         let args = [];
 
-        if (command.startsWith('!')) {
+        if (command.startsWith('.')) {
             cmd = command.toLowerCase().substring(1).split(' ')[0];
             args = command.split(' ').slice(1);
 

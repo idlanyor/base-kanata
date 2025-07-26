@@ -97,7 +97,7 @@ export async function catalogCmd(sock, m) {
 ✨ *Powered by Kanata Bot* ✨
 `
 
-        await sock.sendMessage(m.chat, { 
+        await sock.sendMessage(m.chat, {
             text: catalogText,
             contextInfo: {
                 externalAdReply: {
@@ -113,17 +113,18 @@ export async function catalogCmd(sock, m) {
 
     } catch (error) {
         console.error('Error in catalog command:', error)
-        await sock.sendMessage(m.chat, { 
-            text: '❌ Terjadi kesalahan saat menampilkan katalog.' 
+        await sock.sendMessage(m.chat, {
+            text: '❌ Terjadi kesalahan saat menampilkan katalog.'
         }, { quoted: m })
     }
 }
 
 export async function orderCmd(sock, m) {
     try {
-        const args = m.text.split(' ')
+        // console.log(m.message?.extendedTextMessage?.text?.split(' '))
+        const args = m.message?.extendedTextMessage?.text?.split(' ')
         if (args.length < 2) {
-            return await sock.sendMessage(m.chat, { 
+            return await sock.sendMessage(m.chat, {
                 text: `❌ *Format Salah!*
 
 📝 *Cara penggunaan:*
@@ -134,7 +135,7 @@ export async function orderCmd(sock, m) {
 • .order b3 roy  
 • .order c6 sonata
 
-💡 Ketik .catalog untuk melihat daftar produk` 
+💡 Ketik .catalog untuk melihat daftar produk`
             }, { quoted: m })
         }
 
@@ -144,12 +145,12 @@ export async function orderCmd(sock, m) {
         // Validate product
         const product = globalThis.getProduct(productCode)
         if (!product) {
-            return await sock.sendMessage(m.chat, { 
+            return await sock.sendMessage(m.chat, {
                 text: `❌ *Kode produk tidak ditemukan!*
 
 🔍 Kode yang Anda masukkan: *${productCode}*
 
-💡 Ketik .catalog untuk melihat daftar produk yang tersedia` 
+💡 Ketik .catalog untuk melihat daftar produk yang tersedia`
             }, { quoted: m })
         }
 
@@ -223,14 +224,14 @@ export async function orderCmd(sock, m) {
 Menunggu pembayaran dari customer...
 `
 
-        await sock.sendMessage(globalThis.storeConfig.admin.owner + '@s.whatsapp.net', { 
-            text: adminNotif 
+        await sock.sendMessage(globalThis.storeConfig.admin.owner + '@s.whatsapp.net', {
+            text: adminNotif
         })
 
     } catch (error) {
         console.error('Error in order command:', error)
-        await sock.sendMessage(m.chat, { 
-            text: '❌ Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.' 
+        await sock.sendMessage(m.chat, {
+            text: '❌ Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.'
         }, { quoted: m })
     }
 }
@@ -239,14 +240,14 @@ export async function orderStatusCmd(sock, m) {
     try {
         const args = m.text.split(' ')
         if (args.length < 2) {
-            return await sock.sendMessage(m.chat, { 
+            return await sock.sendMessage(m.chat, {
                 text: `❌ *Format Salah!*
 
 📝 *Cara penggunaan:*
 .order-status [order-id]
 
 📋 *Contoh:*
-.order-status ORD-123456-ABC` 
+.order-status ORD-123456-ABC`
             }, { quoted: m })
         }
 
@@ -254,19 +255,19 @@ export async function orderStatusCmd(sock, m) {
         const order = await Order.getById(orderId)
 
         if (!order) {
-            return await sock.sendMessage(m.chat, { 
+            return await sock.sendMessage(m.chat, {
                 text: `❌ *Pesanan tidak ditemukan!*
 
 🔍 Order ID: *${orderId}*
 
-💡 Pastikan Order ID benar atau ketik .my-orders untuk melihat pesanan Anda` 
+💡 Pastikan Order ID benar atau ketik .my-orders untuk melihat pesanan Anda`
             }, { quoted: m })
         }
 
         // Check if user owns this order or is admin
         if (order.userId !== m.sender && !globalThis.isStoreAdmin(m.sender)) {
-            return await sock.sendMessage(m.chat, { 
-                text: '❌ Anda tidak memiliki akses untuk melihat pesanan ini.' 
+            return await sock.sendMessage(m.chat, {
+                text: '❌ Anda tidak memiliki akses untuk melihat pesanan ini.'
             }, { quoted: m })
         }
 
@@ -316,8 +317,8 @@ ${statusEmoji[order.status]} *Status: ${statusText[order.status]}*
 
     } catch (error) {
         console.error('Error in order status command:', error)
-        await sock.sendMessage(m.chat, { 
-            text: '❌ Terjadi kesalahan saat mengecek status pesanan.' 
+        await sock.sendMessage(m.chat, {
+            text: '❌ Terjadi kesalahan saat mengecek status pesanan.'
         }, { quoted: m })
     }
 }
@@ -327,12 +328,12 @@ export async function myOrdersCmd(sock, m) {
         const orders = await Order.getByUserId(m.sender)
 
         if (orders.length === 0) {
-            return await sock.sendMessage(m.chat, { 
+            return await sock.sendMessage(m.chat, {
                 text: `📭 *TIDAK ADA PESANAN*
 
 Anda belum memiliki pesanan apapun.
 
-💡 Ketik .catalog untuk melihat produk yang tersedia` 
+💡 Ketik .catalog untuk melihat produk yang tersedia`
             }, { quoted: m })
         }
 
@@ -369,8 +370,8 @@ ${index + 1}. ${statusEmoji[order.status]} *${order.id}*
 
     } catch (error) {
         console.error('Error in my orders command:', error)
-        await sock.sendMessage(m.chat, { 
-            text: '❌ Terjadi kesalahan saat mengambil daftar pesanan.' 
+        await sock.sendMessage(m.chat, {
+            text: '❌ Terjadi kesalahan saat mengambil daftar pesanan.'
         }, { quoted: m })
     }
 }
@@ -380,21 +381,21 @@ export async function paymentDoneCmd(sock, m) {
     try {
         // Check if user is admin
         if (!globalThis.isStoreAdmin(m.sender)) {
-            return await sock.sendMessage(m.chat, { 
-                text: '❌ Anda tidak memiliki akses untuk menjalankan command ini.' 
+            return await sock.sendMessage(m.chat, {
+                text: '❌ Anda tidak memiliki akses untuk menjalankan command ini.'
             }, { quoted: m })
         }
-
-        const args = m.text.split(' ')
+        console.log(m)
+        const args = m.message?.conversation?.split(' ')
         if (args.length < 2) {
-            return await sock.sendMessage(m.chat, { 
+            return await sock.sendMessage(m.chat, {
                 text: `❌ *Format Salah!*
 
 📝 *Cara penggunaan:*
 .payment-done [order-id]
 
 📋 *Contoh:*
-.payment-done ORD-123456-ABC` 
+.payment-done ORD-123456-ABC`
             }, { quoted: m })
         }
 
@@ -402,19 +403,19 @@ export async function paymentDoneCmd(sock, m) {
         const order = await Order.getById(orderId)
 
         if (!order) {
-            return await sock.sendMessage(m.chat, { 
+            return await sock.sendMessage(m.chat, {
                 text: `❌ *Pesanan tidak ditemukan!*
 
-🔍 Order ID: *${orderId}*` 
+🔍 Order ID: *${orderId}*`
             }, { quoted: m })
         }
 
         if (order.status !== 'payment_sent') {
-            return await sock.sendMessage(m.chat, { 
+            return await sock.sendMessage(m.chat, {
                 text: `❌ *Status pesanan tidak valid!*
 
 📋 Status saat ini: *${order.status}*
-💡 Hanya pesanan dengan status "payment_sent" yang dapat dikonfirmasi.` 
+💡 Hanya pesanan dengan status "payment_sent" yang dapat dikonfirmasi.`
             }, { quoted: m })
         }
 
@@ -423,12 +424,12 @@ export async function paymentDoneCmd(sock, m) {
         const result = await pterodactyl.createCompleteOrder(order.username, order.productCode)
 
         if (!result.success) {
-            await sock.sendMessage(m.chat, { 
+            await sock.sendMessage(m.chat, {
                 text: `❌ *Gagal membuat server!*
 
 🔍 Error: ${result.error}
 
-💡 Silakan coba lagi atau hubungi developer.` 
+💡 Silakan coba lagi atau hubungi developer.`
             }, { quoted: m })
             return
         }
@@ -444,7 +445,7 @@ export async function paymentDoneCmd(sock, m) {
         })
 
         // Notify admin
-        await sock.sendMessage(m.chat, { 
+        await sock.sendMessage(m.chat, {
             text: `✅ *PESANAN BERHASIL DIPROSES*
 
 🆔 Order ID: *${orderId}*
@@ -452,7 +453,7 @@ export async function paymentDoneCmd(sock, m) {
 🖥️ Server ID: *${result.server.attributes.id}*
 📧 Email: *${result.credentials.email}*
 
-Server berhasil dibuat dan customer akan diberitahu.` 
+Server berhasil dibuat dan customer akan diberitahu.`
         }, { quoted: m })
 
         // Notify customer
@@ -483,8 +484,8 @@ Server berhasil dibuat dan customer akan diberitahu.`
 
     } catch (error) {
         console.error('Error in payment done command:', error)
-        await sock.sendMessage(m.chat, { 
-            text: '❌ Terjadi kesalahan saat memproses konfirmasi pembayaran.' 
+        await sock.sendMessage(m.chat, {
+            text: '❌ Terjadi kesalahan saat memproses konfirmasi pembayaran.'
         }, { quoted: m })
     }
 }
@@ -507,7 +508,7 @@ export async function handlePaymentProof(sock, m) {
         })
 
         // Notify user
-        await sock.sendMessage(m.chat, { 
+        await sock.sendMessage(m.chat, {
             text: `✅ *BUKTI PEMBAYARAN DITERIMA*
 
 🆔 Order ID: *${pendingOrder.id}*
@@ -516,7 +517,7 @@ export async function handlePaymentProof(sock, m) {
 📋 Status berubah menjadi: *Menunggu Konfirmasi Admin*
 
 ⏰ Pembayaran Anda akan dikonfirmasi dalam 1x24 jam.
-💡 Ketik .order-status ${pendingOrder.id} untuk cek status terbaru.` 
+💡 Ketik .order-status ${pendingOrder.id} untuk cek status terbaru.`
         }, { quoted: m })
 
         // Notify admin
@@ -535,8 +536,8 @@ export async function handlePaymentProof(sock, m) {
 ❌ Ketik: .payment-cancel ${pendingOrder.id}
 `
 
-        await sock.sendMessage(globalThis.storeConfig.admin.owner + '@s.whatsapp.net', { 
-            text: adminNotif 
+        await sock.sendMessage(globalThis.storeConfig.admin.owner + '@s.whatsapp.net', {
+            text: adminNotif
         })
 
     } catch (error) {
@@ -549,21 +550,21 @@ export async function paymentCancelCmd(sock, m) {
     try {
         // Check if user is admin
         if (!globalThis.isStoreAdmin(m.sender)) {
-            return await sock.sendMessage(m.chat, { 
-                text: '❌ Anda tidak memiliki akses untuk menjalankan command ini.' 
+            return await sock.sendMessage(m.chat, {
+                text: '❌ Anda tidak memiliki akses untuk menjalankan command ini.'
             }, { quoted: m })
         }
 
         const args = m.text.split(' ')
         if (args.length < 2) {
-            return await sock.sendMessage(m.chat, { 
+            return await sock.sendMessage(m.chat, {
                 text: `❌ *Format Salah!*
 
 📝 *Cara penggunaan:*
 .payment-cancel [order-id]
 
 📋 *Contoh:*
-.payment-cancel ORD-123456-ABC` 
+.payment-cancel ORD-123456-ABC`
             }, { quoted: m })
         }
 
@@ -571,10 +572,10 @@ export async function paymentCancelCmd(sock, m) {
         const order = await Order.getById(orderId)
 
         if (!order) {
-            return await sock.sendMessage(m.chat, { 
+            return await sock.sendMessage(m.chat, {
                 text: `❌ *Pesanan tidak ditemukan!*
 
-🔍 Order ID: *${orderId}*` 
+🔍 Order ID: *${orderId}*`
             }, { quoted: m })
         }
 
@@ -582,14 +583,14 @@ export async function paymentCancelCmd(sock, m) {
         await Order.updateStatus(orderId, 'cancelled')
 
         // Notify admin
-        await sock.sendMessage(m.chat, { 
+        await sock.sendMessage(m.chat, {
             text: `❌ *PESANAN DIBATALKAN*
 
 🆔 Order ID: *${orderId}*
 👤 Username: *${order.username}*
 📦 Produk: *${order.productName}*
 
-Pesanan telah dibatalkan dan customer akan diberitahu.` 
+Pesanan telah dibatalkan dan customer akan diberitahu.`
         }, { quoted: m })
 
         // Notify customer
@@ -612,8 +613,8 @@ Pesanan telah dibatalkan dan customer akan diberitahu.`
 
     } catch (error) {
         console.error('Error in payment cancel command:', error)
-        await sock.sendMessage(m.chat, { 
-            text: '❌ Terjadi kesalahan saat membatalkan pesanan.' 
+        await sock.sendMessage(m.chat, {
+            text: '❌ Terjadi kesalahan saat membatalkan pesanan.'
         }, { quoted: m })
     }
 }

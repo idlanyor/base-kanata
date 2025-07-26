@@ -80,6 +80,7 @@ class Kanata {
                 getMessage: async (key) => await getMessageFromStore(key)
             });
 
+            store?.bind(this.sock.ev);
 
             this.sock.ev.on("creds.update", saveCreds);
 
@@ -107,7 +108,7 @@ class Kanata {
                         if (retryCount >= maxRetries) {
                             logger.error("Max pairing retries reached, cleaning up session...");
                             await this.cleanup();
-                            await fs.remove(`./${this.sessionId}`);
+                            // await fs.remove(`./${this.sessionId}`);
                             
                             // Use debounced restart instead of immediate recursion
                             this.scheduleRestart(5000); // 5 second delay
@@ -150,7 +151,7 @@ class Kanata {
                         logger.warning(`Folder sesi ${this.sessionId} dihapus, login ulang...`);
                         
                         await this.cleanup();
-                        await fs.remove(`./${this.sessionId}`);
+                        // await fs.remove(`./${this.sessionId}`);
                         
                         this.scheduleRestart(3000); // 3 second delay for logout
                     } else if (reason === DisconnectReason.connectionClosed || 
