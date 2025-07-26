@@ -84,16 +84,12 @@
 
 
 
+
+
+
+
   - Test `getDockerImage`, `getStartupCommand`, and `getEnvironmentVariables` with new egg IDs
   - Test backward compatibility with existing egg IDs (15, 18, 22)
   - Test fallback behavior for unknown egg IDs
   - Verify correct mappings for each product type
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
-
-- [ ] 9. Integration test with complete server creation flow
-
-  - Test complete `createServer` flow with configured egg IDs
-  - Test with different product types (nodejs, vps, python) and tiers
-  - Verify that resolved egg IDs are correctly passed to Pterodactyl API
-  - Test error scenarios and ensure graceful degradation
-  - _Requirements: 1.1, 1.2, 1.3, 2.1, 3.1, 3.2, 3.3_

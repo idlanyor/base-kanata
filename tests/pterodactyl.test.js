@@ -12,15 +12,15 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
         }
 
         // Reset console methods to avoid noise in tests
-        vi.spyOn(console, 'log').mockImplementation(() => {})
-        vi.spyOn(console, 'warn').mockImplementation(() => {})
-        vi.spyOn(console, 'error').mockImplementation(() => {})
+        vi.spyOn(console, 'log').mockImplementation(() => { })
+        vi.spyOn(console, 'warn').mockImplementation(() => { })
+        vi.spyOn(console, 'error').mockImplementation(() => { })
     })
 
     afterEach(() => {
         // Restore original globalThis state
         globalThis.storeConfig = originalGlobalThis.storeConfig
-        
+
         // Restore console methods
         vi.restoreAllMocks()
     })
@@ -46,7 +46,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
 
         it('should resolve egg ID for nodejs product codes (a1, a2, a3, etc.)', () => {
             const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'a1')).toBe('15')
             expect(pterodactylAPI.resolveEggId(productSpec, 'a2')).toBe('15')
             expect(pterodactylAPI.resolveEggId(productSpec, 'a3')).toBe('15')
@@ -57,7 +57,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
 
         it('should resolve egg ID for vps product codes (b1, b2, b3, etc.)', () => {
             const productSpec = { name: 'VPS Kroco', ram: '1GB', cpu: '100%', eggId: 15 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'b1')).toBe('16')
             expect(pterodactylAPI.resolveEggId(productSpec, 'b2')).toBe('16')
             expect(pterodactylAPI.resolveEggId(productSpec, 'b3')).toBe('16')
@@ -68,7 +68,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
 
         it('should resolve egg ID for python product codes (c1, c2, c3, etc.)', () => {
             const productSpec = { name: 'Python Kroco', ram: '1GB', cpu: '100%', eggId: 22 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'c1')).toBe('17')
             expect(pterodactylAPI.resolveEggId(productSpec, 'c2')).toBe('17')
             expect(pterodactylAPI.resolveEggId(productSpec, 'c3')).toBe('17')
@@ -79,7 +79,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
 
         it('should handle uppercase product codes', () => {
             const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'A1')).toBe('15')
             expect(pterodactylAPI.resolveEggId(productSpec, 'B2')).toBe('16')
             expect(pterodactylAPI.resolveEggId(productSpec, 'C3')).toBe('17')
@@ -102,9 +102,9 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 }
             }
             pterodactylAPI = new PterodactylAPI()
-            
+
             const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'a1')).toBe('25')
             expect(pterodactylAPI.resolveEggId(productSpec, 'b1')).toBe('26')
             expect(pterodactylAPI.resolveEggId(productSpec, 'c1')).toBe('27')
@@ -125,9 +125,9 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 }
             }
             pterodactylAPI = new PterodactylAPI()
-            
+
             const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'a1')).toBe('30')
             expect(pterodactylAPI.resolveEggId(productSpec, 'b1')).toBe('31')
             expect(pterodactylAPI.resolveEggId(productSpec, 'c1')).toBe('32')
@@ -148,9 +148,9 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 }
             }
             pterodactylAPI = new PterodactylAPI()
-            
+
             const productSpec = { name: 'VPS Kroco', ram: '1GB', cpu: '100%', eggId: 20 }
-            
+
             // Should fall back to productSpec.eggId when config is missing for that type
             expect(pterodactylAPI.resolveEggId(productSpec, 'b1')).toBe('20')
         })
@@ -173,19 +173,19 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
 
         it('should fall back to productSpec.eggId when no configuration exists', () => {
             const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'a1')).toBe('18')
         })
 
         it('should fall back to productSpec.eggId with string values', () => {
             const productSpec = { name: 'VPS Kroco', ram: '1GB', cpu: '100%', eggId: '20' }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'b1')).toBe('20')
         })
 
         it('should use default mapping when productSpec.eggId is missing', () => {
             const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%' }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'a1')).toBe('18') // default nodejs
             expect(pterodactylAPI.resolveEggId(productSpec, 'b1')).toBe('15') // default vps
             expect(pterodactylAPI.resolveEggId(productSpec, 'c1')).toBe('22') // default python
@@ -218,14 +218,14 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
 
         it('should handle invalid product code formats', () => {
             const productSpec = { name: 'Test Product', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             // When product code is truly invalid (doesn't start with a, b, or c), it triggers fallback behavior
             // The fallback should use productSpec.eggId if valid
             const result1 = pterodactylAPI.resolveEggId(productSpec, 'x1')  // starts with x - invalid
             const result2 = pterodactylAPI.resolveEggId(productSpec, '1a')  // starts with number - invalid
             const result3 = pterodactylAPI.resolveEggId(productSpec, 'z99') // starts with z - invalid
             const result4 = pterodactylAPI.resolveEggId(productSpec, '123') // starts with number - invalid
-            
+
             // All should use productSpec.eggId as fallback
             expect(result1).toBe('18')
             expect(result2).toBe('18')
@@ -235,7 +235,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
 
         it('should handle empty or null product codes', () => {
             const productSpec = { name: 'Test Product', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, '')).toBe('18') // fallback to productSpec
             expect(pterodactylAPI.resolveEggId(productSpec, null)).toBe('18') // fallback to productSpec
             expect(pterodactylAPI.resolveEggId(productSpec, undefined)).toBe('18') // fallback to productSpec
@@ -243,7 +243,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
 
         it('should handle non-string product codes', () => {
             const productSpec = { name: 'Test Product', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 123)).toBe('18') // fallback to productSpec
             expect(pterodactylAPI.resolveEggId(productSpec, {})).toBe('18') // fallback to productSpec
             expect(pterodactylAPI.resolveEggId(productSpec, [])).toBe('18') // fallback to productSpec
@@ -259,7 +259,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
     describe('error handling with malformed configuration', () => {
         it('should handle missing globalThis.storeConfig', () => {
             delete globalThis.storeConfig
-            
+
             // Constructor will fail, so we need to test the error handling differently
             expect(() => new PterodactylAPI()).toThrow()
         })
@@ -269,7 +269,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 // Missing pterodactyl config
                 someOtherConfig: 'value'
             }
-            
+
             // Constructor will fail, so we need to test the error handling differently
             expect(() => new PterodactylAPI()).toThrow()
         })
@@ -285,9 +285,9 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 }
             }
             pterodactylAPI = new PterodactylAPI()
-            
+
             const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'a1')).toBe('18') // fallback to productSpec
         })
 
@@ -302,9 +302,9 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 }
             }
             pterodactylAPI = new PterodactylAPI()
-            
+
             const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'a1')).toBe('18') // fallback to productSpec
         })
 
@@ -323,9 +323,9 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 }
             }
             pterodactylAPI = new PterodactylAPI()
-            
+
             const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'a1')).toBe('18') // fallback to productSpec
             expect(pterodactylAPI.resolveEggId(productSpec, 'b1')).toBe('18') // fallback to productSpec
             expect(pterodactylAPI.resolveEggId(productSpec, 'c1')).toBe('18') // fallback to productSpec
@@ -346,9 +346,9 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 }
             }
             pterodactylAPI = new PterodactylAPI()
-            
+
             const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'a1')).toBe('18') // fallback to productSpec
             expect(pterodactylAPI.resolveEggId(productSpec, 'b1')).toBe('18') // fallback to productSpec
             expect(pterodactylAPI.resolveEggId(productSpec, 'c1')).toBe('17') // valid config
@@ -365,7 +365,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 }
             }
             pterodactylAPI = new PterodactylAPI()
-            
+
             // Test with invalid productSpec.eggId values
             expect(pterodactylAPI.resolveEggId({ eggId: 'invalid' }, 'a1')).toBe('18') // default nodejs
             expect(pterodactylAPI.resolveEggId({ eggId: -5 }, 'b1')).toBe('15') // default vps
@@ -391,11 +391,11 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
             expect(pterodactylAPI.getProductType('a1')).toBe('nodejs')
             expect(pterodactylAPI.getProductType('a2')).toBe('nodejs')
             expect(pterodactylAPI.getProductType('A1')).toBe('nodejs')
-            
+
             expect(pterodactylAPI.getProductType('b1')).toBe('vps')
             expect(pterodactylAPI.getProductType('b2')).toBe('vps')
             expect(pterodactylAPI.getProductType('B1')).toBe('vps')
-            
+
             expect(pterodactylAPI.getProductType('c1')).toBe('python')
             expect(pterodactylAPI.getProductType('c2')).toBe('python')
             expect(pterodactylAPI.getProductType('C1')).toBe('python')
@@ -453,7 +453,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 }
             }
             pterodactylAPI = new PterodactylAPI()
-            
+
             expect(pterodactylAPI.configValidation.isValid).toBe(true)
             expect(pterodactylAPI.configValidation.configExists).toBe(true)
             expect(pterodactylAPI.configValidation.validProductTypes).toEqual(['nodejs', 'vps', 'python'])
@@ -470,7 +470,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 }
             }
             pterodactylAPI = new PterodactylAPI()
-            
+
             expect(pterodactylAPI.configValidation.isValid).toBe(true)
             expect(pterodactylAPI.configValidation.configExists).toBe(false)
         })
@@ -490,7 +490,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 }
             }
             pterodactylAPI = new PterodactylAPI()
-            
+
             expect(pterodactylAPI.configValidation.isValid).toBe(false)
             expect(pterodactylAPI.configValidation.errors.length).toBeGreaterThan(0)
         })
@@ -516,7 +516,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
 
         it('should handle mixed case product codes correctly', () => {
             const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, 'A1')).toBe('15')
             expect(pterodactylAPI.resolveEggId(productSpec, 'B1')).toBe('16')
             expect(pterodactylAPI.resolveEggId(productSpec, 'C1')).toBe('17')
@@ -527,7 +527,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
 
         it('should handle product codes with various suffixes', () => {
             const productSpec = { name: 'Test Product', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             // All these should be treated as valid product codes since they start with a, b, or c
             expect(pterodactylAPI.resolveEggId(productSpec, 'a123')).toBe('15') // nodejs
             expect(pterodactylAPI.resolveEggId(productSpec, 'btest')).toBe('16') // vps
@@ -546,7 +546,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 }
             }
             pterodactylAPI = new PterodactylAPI()
-            
+
             // These should fall back to default mapping since productSpec.eggId is invalid
             expect(pterodactylAPI.resolveEggId({ eggId: 0 }, 'a1')).toBe('18') // default nodejs
             expect(pterodactylAPI.resolveEggId({ eggId: -1 }, 'b1')).toBe('15') // default vps
@@ -556,13 +556,13 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
         it('should handle extremely long product codes', () => {
             const productSpec = { name: 'Test Product', ram: '1GB', cpu: '100%', eggId: 18 }
             const longProductCode = 'a' + 'x'.repeat(1000) // Very long product code starting with 'a'
-            
+
             expect(pterodactylAPI.resolveEggId(productSpec, longProductCode)).toBe('15') // should still detect as nodejs
         })
 
         it('should handle special characters in product codes', () => {
             const productSpec = { name: 'Test Product', ram: '1GB', cpu: '100%', eggId: 18 }
-            
+
             // These should still be detected based on first character
             expect(pterodactylAPI.resolveEggId(productSpec, 'a@#$')).toBe('15') // nodejs
             expect(pterodactylAPI.resolveEggId(productSpec, 'b!@#')).toBe('16') // vps
@@ -722,10 +722,10 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
             it('should return objects that can be safely modified', () => {
                 const env1 = pterodactylAPI.getEnvironmentVariables(15)
                 const env2 = pterodactylAPI.getEnvironmentVariables(15)
-                
+
                 // Modify one environment object
                 env1.CUSTOM_VAR = 'test'
-                
+
                 // Should not affect the other
                 expect(env2.CUSTOM_VAR).toBeUndefined()
                 expect(env2).toEqual({
@@ -740,7 +740,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
                 const resolvedEggId = pterodactylAPI.resolveEggId(productSpec, 'a1')
                 const dockerImage = pterodactylAPI.getDockerImage(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('15') // Configured NodeJS egg ID
                 expect(dockerImage).toBe('ghcr.io/parkervcp/yolks:nodejs_18')
             })
@@ -749,7 +749,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const productSpec = { name: 'VPS Kroco', ram: '1GB', cpu: '100%', eggId: 15 }
                 const resolvedEggId = pterodactylAPI.resolveEggId(productSpec, 'b1')
                 const dockerImage = pterodactylAPI.getDockerImage(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('16') // Configured VPS egg ID
                 expect(dockerImage).toBe('ghcr.io/parkervcp/yolks:ubuntu')
             })
@@ -758,7 +758,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const productSpec = { name: 'Python Kroco', ram: '1GB', cpu: '100%', eggId: 22 }
                 const resolvedEggId = pterodactylAPI.resolveEggId(productSpec, 'c1')
                 const dockerImage = pterodactylAPI.getDockerImage(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('17') // Configured Python egg ID
                 expect(dockerImage).toBe('ghcr.io/parkervcp/yolks:python_3.11')
             })
@@ -767,7 +767,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
                 const resolvedEggId = pterodactylAPI.resolveEggId(productSpec, 'a1')
                 const startupCommand = pterodactylAPI.getStartupCommand(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('15') // Configured NodeJS egg ID
                 expect(startupCommand).toBe('npm start')
             })
@@ -776,7 +776,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const productSpec = { name: 'VPS Kroco', ram: '1GB', cpu: '100%', eggId: 15 }
                 const resolvedEggId = pterodactylAPI.resolveEggId(productSpec, 'b1')
                 const startupCommand = pterodactylAPI.getStartupCommand(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('16') // Configured VPS egg ID
                 expect(startupCommand).toBe('/bin/bash')
             })
@@ -785,7 +785,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const productSpec = { name: 'Python Kroco', ram: '1GB', cpu: '100%', eggId: 22 }
                 const resolvedEggId = pterodactylAPI.resolveEggId(productSpec, 'c1')
                 const startupCommand = pterodactylAPI.getStartupCommand(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('17') // Configured Python egg ID
                 expect(startupCommand).toBe('python main.py')
             })
@@ -794,7 +794,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
                 const resolvedEggId = pterodactylAPI.resolveEggId(productSpec, 'a1')
                 const envVars = pterodactylAPI.getEnvironmentVariables(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('15') // Configured NodeJS egg ID
                 expect(envVars).toEqual({
                     "NODE_VERSION": "18",
@@ -806,7 +806,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const productSpec = { name: 'VPS Kroco', ram: '1GB', cpu: '100%', eggId: 15 }
                 const resolvedEggId = pterodactylAPI.resolveEggId(productSpec, 'b1')
                 const envVars = pterodactylAPI.getEnvironmentVariables(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('16') // Configured VPS egg ID
                 expect(envVars).toEqual({}) // VPS has empty environment
             })
@@ -815,7 +815,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const productSpec = { name: 'Python Kroco', ram: '1GB', cpu: '100%', eggId: 22 }
                 const resolvedEggId = pterodactylAPI.resolveEggId(productSpec, 'c1')
                 const envVars = pterodactylAPI.getEnvironmentVariables(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('17') // Configured Python egg ID
                 expect(envVars).toEqual({
                     "PYTHON_VERSION": "3.11",
@@ -844,7 +844,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const productSpec = { name: 'NodeJS Kroco', ram: '1GB', cpu: '100%', eggId: 18 }
                 const resolvedEggId = pterodactylAPI.resolveEggId(productSpec, 'a1')
                 const dockerImage = pterodactylAPI.getDockerImage(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('18') // Fallback to productSpec.eggId
                 expect(dockerImage).toBe('ghcr.io/parkervcp/yolks:nodejs_18')
             })
@@ -854,7 +854,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const productSpec = { name: 'Python Kroco', ram: '1GB', cpu: '100%', eggId: 22 }
                 const resolvedEggId = pterodactylAPI.resolveEggId(productSpec, 'c1')
                 const startupCommand = pterodactylAPI.getStartupCommand(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('22') // Fallback to productSpec.eggId
                 expect(startupCommand).toBe('python main.py')
             })
@@ -864,9 +864,12 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const productSpec = { name: 'VPS Kroco', ram: '1GB', cpu: '100%', eggId: 15 }
                 const resolvedEggId = pterodactylAPI.resolveEggId(productSpec, 'b1')
                 const envVars = pterodactylAPI.getEnvironmentVariables(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('15') // Fallback to productSpec.eggId
-                expect(envVars).toEqual({}) // VPS has empty environment (but this is legacy VPS egg ID)
+                expect(envVars).toEqual({ // Egg ID 15 is actually mapped to NodeJS environment
+                    "NODE_VERSION": "18",
+                    "MAIN_FILE": "index.js"
+                })
             })
 
             it('should use default mapping when productSpec.eggId is missing', () => {
@@ -876,7 +879,7 @@ describe('PterodactylAPI - Egg ID Resolution', () => {
                 const dockerImage = pterodactylAPI.getDockerImage(resolvedEggId)
                 const startupCommand = pterodactylAPI.getStartupCommand(resolvedEggId)
                 const envVars = pterodactylAPI.getEnvironmentVariables(resolvedEggId)
-                
+
                 expect(resolvedEggId).toBe('18') // Default NodeJS egg ID
                 expect(dockerImage).toBe('ghcr.io/parkervcp/yolks:nodejs_18')
                 expect(startupCommand).toBe('npm start')
