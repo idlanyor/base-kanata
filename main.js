@@ -14,7 +14,7 @@ import Database from './helper/database.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import util from 'util';
-import { processMessageWithAI } from './helper/gemini.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -101,12 +101,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
             }
         }
 
-        // Coba proses dengan Gemini AI terlebih dahulu
         if (m.key.fromMe) return
-        const aiResult = await processMessageWithAI(command, m.sender);
-        if (aiResult) {
-            command = '!' + aiResult.command + ' ' + aiResult.args;
-        }
 
         let cmd = '';
         let args = [];

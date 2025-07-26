@@ -47,11 +47,7 @@ globalThis.isBot = async (id) => {
 
 // variabel apikey
 globalThis.apiKey = {
-    gemini: '',
-    gpt: '',
-    mistral: '',
     removeBG: '',
-    groq: '',
     pdf: {
         secret: '',
         public: ''

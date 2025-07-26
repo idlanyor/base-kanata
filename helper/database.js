@@ -20,7 +20,6 @@ const defaultData = {
   settings: {
     owner: [],
     botMode: 'public',
-    autoAI: false,
     prefix: '!'
   }
 }
@@ -173,10 +172,7 @@ const Database = {
         db.data.settings.botMode = 'public'
       }
 
-      // Pastikan field autoAI ada
-      if (!db.data.settings.hasOwnProperty('autoAI')) {
-        db.data.settings.autoAI = false
-      }
+
 
       // Pastikan field prefix ada
       if (!db.data.settings.hasOwnProperty('prefix')) {

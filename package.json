@@ -13,7 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "@fizzxydev/baileys-pro": "^8.6.10",
-    "@google/generative-ai": "^0.24.0",
+
     "@hapi/boom": "^10.0.1",
     "@seaavey/baileys": "^6.6.5",
     "@vreden/youtube_scraper": "latest",
