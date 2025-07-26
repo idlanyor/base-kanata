@@ -122,7 +122,7 @@ export async function catalogCmd(sock, m) {
 export async function orderCmd(sock, m) {
     try {
         // console.log(m.message?.extendedTextMessage?.text?.split(' '))
-        const args = m.message?.extendedTextMessage?.text?.split(' ')
+        const args = m.message?.conversation?.split(' ') || m.message?.extendedTextMessage?.text?.split(' ')
         if (args.length < 2) {
             return await sock.sendMessage(m.chat, {
                 text: `❌ *Format Salah!*
@@ -140,7 +140,7 @@ export async function orderCmd(sock, m) {
         }
 
         const productCode = args[1].toLowerCase()
-        const username = args[2] || m.pushName || 'user'
+        const username = args[2] + '-antidonasi' || m.pushName || 'user'
 
         // Validate product
         const product = globalThis.getProduct(productCode)
@@ -386,7 +386,7 @@ export async function paymentDoneCmd(sock, m) {
             }, { quoted: m })
         }
         console.log(m)
-        const args = m.message?.conversation?.split(' ')
+        const args = m.message?.conversation?.split(' ') || m.message?.extendedTextMessage?.text?.split(' ')
         if (args.length < 2) {
             return await sock.sendMessage(m.chat, {
                 text: `❌ *Format Salah!*

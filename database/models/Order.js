@@ -4,12 +4,7 @@ import { randomBytes } from 'crypto'
 import { Low } from 'lowdb'
 
 class Order {
-    db = '';
-    constructor() {
-        initDatabase()
-        const adapter = new JSONFile(dbFile)
-        this.db = new Low(adapter, defaultData)
-    }
+
     static async create(orderData) {
         await initDatabase()
         const adapter = new JSONFile(dbFile)
@@ -41,19 +36,37 @@ class Order {
     }
 
     static async getById(orderId) {
-        const db = this.db
+        await initDatabase()
+        const adapter = new JSONFile(dbFile)
+        const db = new Low(adapter, defaultData)
+
+        if (!db.data.orders) {
+            db.data.orders = {}
+        }
         return db.data.orders?.[orderId] || null
     }
 
     static async getByUserId(userId) {
-        const db = this.db
+        await initDatabase()
+        const adapter = new JSONFile(dbFile)
+        const db = new Low(adapter, defaultData)
+
+        if (!db.data.orders) {
+            db.data.orders = {}
+        }
         if (!db.data.orders) return []
 
         return Object.values(db.data.orders).filter(order => order.userId === userId)
     }
 
     static async updateStatus(orderId, status, additionalData = {}) {
-        const db = this.db
+        await initDatabase()
+        const adapter = new JSONFile(dbFile)
+        const db = new Low(adapter, defaultData)
+
+        if (!db.data.orders) {
+            db.data.orders = {}
+        }
 
         if (db.data.orders?.[orderId]) {
             db.data.orders[orderId].status = status
@@ -70,7 +83,13 @@ class Order {
     }
 
     static async addPaymentProof(orderId, proofData) {
-        const db = this.db
+        await initDatabase()
+        const adapter = new JSONFile(dbFile)
+        const db = new Low(adapter, defaultData)
+
+        if (!db.data.orders) {
+            db.data.orders = {}
+        }
 
         if (db.data.orders?.[orderId]) {
             db.data.orders[orderId].paymentProof = proofData
@@ -85,7 +104,13 @@ class Order {
     }
 
     static async getAllPending() {
-        const db = this.db
+        await initDatabase()
+        const adapter = new JSONFile(dbFile)
+        const db = new Low(adapter, defaultData)
+
+        if (!db.data.orders) {
+            db.data.orders = {}
+        }
         if (!db.data.orders) return []
 
         return Object.values(db.data.orders).filter(order =>
