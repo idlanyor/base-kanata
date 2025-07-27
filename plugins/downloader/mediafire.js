@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import axios from 'axios';
 
 export const handler = {
     command: ['mediafire', 'mf', 'mfire'],
@@ -33,8 +33,7 @@ export const handler = {
 
             // Proses download menggunakan API
             const apiUrl = `https://api.ryzumi.vip/api/downloader/mediafire?url=${encodeURIComponent(url)}`;
-            const response = await fetch(apiUrl);
-            const result = await response.json();
+            const { data: result } = await axios.get(apiUrl);
 
             if (!result.status) {
                 await m.reply(`❌ *Gagal mengambil file Mediafire*\n\n*Pesan:* ${result.message}\n*Error:* ${result.error || '-'}\n`);
@@ -64,7 +63,7 @@ export const handler = {
 
         } catch (error) {
             console.error('Error in mediafire command:', error);
-            await m.reply(`❌ Error: ${error.message}`);
+            await m.reply(`❌ Error: ${error.response?.data?.message || error.message}`);
             await sock.sendMessage(m.chat, {
                 react: { text: '❌', key: m.key }
             });
