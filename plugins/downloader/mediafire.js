@@ -43,15 +43,42 @@ export const handler = {
                 return;
             }
 
+            // Deteksi MIME type dari URL
+            const getMimeType = (url) => {
+                const extension = url.split('/').pop().split('.').pop().toLowerCase();
+                const mimeTypes = {
+                    'pdf': 'application/pdf',
+                    'doc': 'application/msword',
+                    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'xls': 'application/vnd.ms-excel',
+                    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'ppt': 'application/vnd.ms-powerpoint',
+                    'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                    'zip': 'application/zip',
+                    'rar': 'application/x-rar-compressed',
+                    '7z': 'application/x-7z-compressed',
+                    'mp4': 'video/mp4',
+                    'mkv': 'video/x-matroska',
+                    'mp3': 'audio/mpeg',
+                    'wav': 'audio/wav',
+                    'jpg': 'image/jpeg',
+                    'jpeg': 'image/jpeg',
+                    'png': 'image/png',
+                    'gif': 'image/gif'
+                };
+                return mimeTypes[extension] || 'application/octet-stream';
+            };
+
             // Format pesan hasil
             const caption = `📥 *MEDIAFIRE DOWNLOADER*\n\n` +
                 `*Nama File:* ${result.data.filename}\n` +
                 `*Ukuran:* ${result.data.filesize}\n`;
 
-            // Kirim file sebagai dokumen
+            // Kirim file sebagai dokumen dengan MIME type yang sesuai
             await sock.sendMessage(m.chat, {
                 document: { url: result.data.downloadUrl },
                 fileName: result.data.filename,
+                mimetype: getMimeType(url),
                 caption: caption
             }, { quoted: m });
 
