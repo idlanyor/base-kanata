@@ -41,13 +41,12 @@ export const handler = {
             // Format pesan hasil
             const response = `🎬 *CAPCUT DOWNLOADER*\n\n` +
                 `*Judul:* ${result.data.title}\n` +
-                `*Deskripsi:* ${result.data.description}\n\n` +
-                `*Download Link:*\n${result.data.downloadUrl}`;
+                `*Deskripsi:* ${result.data.description}\n\n`;
 
             // Kirim thumbnail jika ada
-            if (result.data.thumbnail) {
+            if (result.data.downloadUrl) {
                 await sock.sendMessage(m.chat, {
-                    image: { url: result.data.thumbnail },
+                    video: { url: result.data.downloadUrl },
                     caption: response
                 });
             } else {
