@@ -17,7 +17,6 @@
     "@fizzxydev/baileys-pro": "npm:@neoxr/baileys@latest",
     "@google/generative-ai": "^0.24.1",
     "@hapi/boom": "^10.0.1",
-    "@seaavey/baileys": "^6.6.91",
     "@vreden/youtube_scraper": "latest",
     "adm-zip": "^0.5.16",
     "axios": "^1.11.0",
