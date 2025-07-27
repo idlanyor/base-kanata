@@ -29,6 +29,7 @@
     "moment": "^2.30.1",
     "node-fetch": "^3.3.2",
     "puppeteer": "^24.15.0",
+    "sharp": "^0.34.3",
     "wa-sticker-formatter": "^4.4.4"
   },
   "devDependencies": {

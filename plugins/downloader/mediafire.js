@@ -1,4 +1,4 @@
-import { mediafire } from '../../lib/scraper/mediafire.js';
+import fetch from 'node-fetch';
 
 export const handler = {
     command: ['mediafire', 'mf', 'mfire'],
@@ -31,8 +31,10 @@ export const handler = {
                 react: { text: '⏳', key: m.key }
             });
 
-            // Proses download
-            const result = await mediafire(url);
+            // Proses download menggunakan API
+            const apiUrl = `https://api.ryzumi.vip/api/downloader/mediafire?url=${encodeURIComponent(url)}`;
+            const response = await fetch(apiUrl);
+            const result = await response.json();
 
             if (!result.status) {
                 await m.reply(`❌ *Gagal mengambil file Mediafire*\n\n*Pesan:* ${result.message}\n*Error:* ${result.error || '-'}\n`);
@@ -43,15 +45,16 @@ export const handler = {
             }
 
             // Format pesan hasil
-            const response = `📥 *MEDIAFIRE DOWNLOADER*\n\n` +
+            const caption = `📥 *MEDIAFIRE DOWNLOADER*\n\n` +
                 `*Nama File:* ${result.data.filename}\n` +
                 `*Ukuran:* ${result.data.filesize}\n`;
 
+            // Kirim file sebagai dokumen
             await sock.sendMessage(m.chat, {
                 document: { url: result.data.downloadUrl },
                 fileName: result.data.filename,
                 mimetype: 'application/octet-stream',
-                caption: response
+                caption: caption
             }, { quoted: m });
 
             // Tambahkan reaksi sukses

@@ -9,12 +9,12 @@ export const handler = {
     
     async exec({ m, args, sock }) {
         try {
-            if (!args[0]) {
+            if (!args) {
                 await m.reply('❌ Masukkan kode yang akan dieval!');
                 return;
             }
 
-            const evalCode = args.join(' ');
+            const evalCode = args;
             
             // Security check: Block dangerous functions and keywords
             const dangerousPatterns = [

@@ -33,7 +33,7 @@ export const handler = {
                     contextInfo: {
                         externalAdReply: {
                             title: '乂 Qwen AI 乂',
-                            body: `Question: ${args.join(' ')}`,
+                            body: `Question: ${args}`,
                             thumbnailUrl: 'https://s6.imgcdn.dev/YYoFZh.jpg',
                             sourceUrl: `${globalThis.newsletterUrl}`,
                             mediaType: 1,
