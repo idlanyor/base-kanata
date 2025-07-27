@@ -45,7 +45,14 @@ export const handler = {
 
             // Deteksi MIME type dari URL
             const getMimeType = (url) => {
-                const extension = url.split('/').pop().split('.').pop().toLowerCase();
+                const pathname = new URL(url).pathname;
+                const segments = pathname.split('/');
+
+                // Cari segment yang mengandung titik (nama file)
+                const filename = segments.find(seg => seg.includes('.')) || '';
+
+                // Ambil extension, terus tambahin titik depan
+                const extension = filename.split('.').pop().toLowerCase();
                 const mimeTypes = {
                     'pdf': 'application/pdf',
                     'doc': 'application/msword',
@@ -66,17 +73,22 @@ export const handler = {
                     'png': 'image/png',
                     'gif': 'image/gif'
                 };
-                return mimeTypes[extension] || 'application/octet-stream';
+                return mimeTypes[extension] || 'application/zip';
             };
+
+            // Download file as buffer
+            const fileResponse = await axios.get(result.data.downloadUrl, {
+                responseType: 'arraybuffer'
+            });
 
             // Format pesan hasil
             const caption = `📥 *MEDIAFIRE DOWNLOADER*\n\n` +
                 `*Nama File:* ${result.data.filename}\n` +
                 `*Ukuran:* ${result.data.filesize}\n`;
 
-            // Kirim file sebagai dokumen dengan MIME type yang sesuai
+            // Kirim file sebagai dokumen dengan buffer
             await sock.sendMessage(m.chat, {
-                document: { url: result.data.downloadUrl },
+                document: Buffer.from(fileResponse.data),
                 fileName: result.data.filename,
                 mimetype: getMimeType(url),
                 caption: caption
