@@ -118,7 +118,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
             // Log eksekusi command
             logger.info('⚡ EXECUTE COMMAND')
             logger.info(`├ Command : ${cmd}`)
-            logger.info(`├ Args    : ${args || '-'}`)
+            logger.info(`├ Args    : ${args.join(' ') || '-'}`)
             logger.info(`├ From    : ${m.pushName || 'Unknown'} (@${noTel})`)
             logger.info(`└ Chat    : ${id.endsWith('@g.us') ? '👥 Group' : '👤 Private'}`)
             logger.divider()
@@ -181,7 +181,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
 
             await matchedHandler.exec({
                 sock, m, id,
-                args: args,
+                args: args.join(' '),
                 sender, noTel,
                 attf, cmd
             });
@@ -311,6 +311,33 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
                     } catch (fallbackError) {
                         logger.error("Fallback error:", fallbackError);
                     }
+                }
+                break;
+
+            case '#': // Untuk exec
+                try {
+                    if (!await m.isOwner) {
+                        await m.reply('❌ Perintah ini hanya untuk owner bot!');
+                        return;
+                    }
+
+                    const execCommand = args.join(' ');
+                    if (!execCommand) {
+                        await m.reply('❌ Masukkan perintah yang akan dieksekusi!');
+                        return;
+                    }
+
+                    const { stdout, stderr } = await execAsync(execCommand);
+                    let result = '';
+
+                    if (stdout) result += `📤 *STDOUT*\n\n${stdout}\n`;
+                    if (stderr) result += `⚠️ *STDERR*\n\n${stderr}\n`;
+
+                    if (!result) result = '✅ Executed with no output';
+
+                    await m.reply(result);
+                } catch (error) {
+                    await m.reply(`❌ *ERROR*\n\n${error.message}`);
                 }
                 break;
 
@@ -673,7 +700,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
                             contextInfo: {
                                 externalAdReply: {
                                     title: '乂 Qwen AI 乂',
-                                    body: `Question: ${args}`,
+                                    body: `Question: ${args.join(' ')}`,
                                     thumbnailUrl: 'https://s6.imgcdn.dev/YYoFZh.jpg',
                                     sourceUrl: `${globalThis.newsletterUrl}`,
                                     mediaType: 1,
