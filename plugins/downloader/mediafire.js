@@ -52,7 +52,6 @@ export const handler = {
             await sock.sendMessage(m.chat, {
                 document: { url: result.data.downloadUrl },
                 fileName: result.data.filename,
-                mimetype: 'application/octet-stream',
                 caption: caption
             }, { quoted: m });
 
