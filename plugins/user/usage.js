@@ -1,43 +1,45 @@
 import User from '../../database/models/User.js'
 import { PREMIUM_PLANS } from '../../database/models/User.js'
 
-export default {
-  name: 'usage',
-  alias: ['limit', 'quota', 'daily'],
-  category: 'user',
-  desc: 'Check your daily usage and limits',
-  use: '',
-  async exec({ sock, m, args, prefix }) {
-    try {
-      const jid = m.sender
-      const user = await User.getById(jid)
-      
-      if (!user.registered) {
-        return await m.reply('❌ *Usage Failed*\nYou must register first!\n\nUse: ' + prefix + 'register <name>')
-      }
-      
-      const commandLimit = await User.checkLimit(jid, 'command')
-      const messageLimit = await User.checkLimit(jid, 'message')
-      const plan = PREMIUM_PLANS[user.premiumPlan]
-      
-      // Create progress bars
-      const commandBar = createUsageBar(commandLimit.used, commandLimit.limit)
-      const messageBar = createUsageBar(messageLimit.used, messageLimit.limit)
-      
-      // Calculate usage percentages
-      const commandPercent = ((commandLimit.used / commandLimit.limit) * 100).toFixed(1)
-      const messagePercent = ((messageLimit.used / messageLimit.limit) * 100).toFixed(1)
-      
-      // Get remaining time until reset
-      const now = new Date()
-      const tomorrow = new Date(now)
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      tomorrow.setHours(0, 0, 0, 0)
-      const timeUntilReset = tomorrow - now
-      const hoursUntilReset = Math.floor(timeUntilReset / (1000 * 60 * 60))
-      const minutesUntilReset = Math.floor((timeUntilReset % (1000 * 60 * 60)) / (1000 * 60))
-      
-      const usageMsg = `📊 *Daily Usage Report*
+export const handler = {
+    command: ['usage', 'limit', 'quota', 'daily'],
+    tags: ['user'],
+    help: 'Check your daily usage and limits',
+    isAdmin: false,
+    isBotAdmin: false,
+    isOwner: false,
+    isGroup: false,
+    exec: async ({ sock, m, args }) => {
+        try {
+            const jid = m.sender
+            const user = await User.getById(jid)
+            
+            if (!user.registered) {
+                return await m.reply('❌ *Usage Failed*\nYou must register first!\n\nUse: !register <name>')
+            }
+            
+            const commandLimit = await User.checkLimit(jid, 'command')
+            const messageLimit = await User.checkLimit(jid, 'message')
+            const plan = PREMIUM_PLANS[user.premiumPlan]
+            
+            // Create progress bars
+            const commandBar = createUsageBar(commandLimit.used, commandLimit.limit)
+            const messageBar = createUsageBar(messageLimit.used, messageLimit.limit)
+            
+            // Calculate usage percentages
+            const commandPercent = ((commandLimit.used / commandLimit.limit) * 100).toFixed(1)
+            const messagePercent = ((messageLimit.used / messageLimit.limit) * 100).toFixed(1)
+            
+            // Get remaining time until reset
+            const now = new Date()
+            const tomorrow = new Date(now)
+            tomorrow.setDate(tomorrow.getDate() + 1)
+            tomorrow.setHours(0, 0, 0, 0)
+            const timeUntilReset = tomorrow - now
+            const hoursUntilReset = Math.floor(timeUntilReset / (1000 * 60 * 60))
+            const minutesUntilReset = Math.floor((timeUntilReset % (1000 * 60 * 60)) / (1000 * 60))
+            
+            const usageMsg = `📊 *Daily Usage Report*
 
 👤 *User:* ${user.name}
 📦 *Plan:* ${plan.name}
@@ -71,32 +73,34 @@ ${commandLimit.remaining <= 5 || messageLimit.remaining <= 10 ? `⚠️ *Warning
 • Use commands wisely
 
 📋 *Quick Commands:*
-• \`${prefix}profile\` - View full profile
-• \`${prefix}premium\` - View premium plans
-• \`${prefix}level\` - View level info`
+• \`!profile\` - View full profile
+• \`!premium\` - View premium plans
+• \`!level\` - View level info`
 
-      await m.reply(usageMsg)
-      
-    } catch (error) {
-      console.error('Usage error:', error)
-      await m.reply('❌ *Error*\nFailed to load usage information. Please try again.')
+            await m.reply(usageMsg)
+            
+        } catch (error) {
+            console.error('Usage error:', error)
+            await m.reply('❌ *Error*\nFailed to load usage information. Please try again.')
+        }
     }
-  }
 }
 
 function createUsageBar(used, limit) {
-  const percentage = (used / limit) * 100
-  const filled = Math.round(percentage / 5) // 20 segments
-  const empty = 20 - filled
-  
-  let bar = ''
-  if (percentage >= 90) {
-    bar = '🔴' + '█'.repeat(filled - 1) + '░'.repeat(empty)
-  } else if (percentage >= 75) {
-    bar = '🟡' + '█'.repeat(filled - 1) + '░'.repeat(empty)
-  } else {
-    bar = '🟢' + '█'.repeat(filled) + '░'.repeat(empty)
-  }
-  
-  return bar
+    const percentage = (used / limit) * 100
+    const filled = Math.round(percentage / 5) // 20 segments
+    const empty = 20 - filled
+    
+    let bar = ''
+    if (percentage >= 90) {
+        bar = '🔴' + '█'.repeat(filled - 1) + '░'.repeat(empty)
+    } else if (percentage >= 75) {
+        bar = '🟡' + '█'.repeat(filled - 1) + '░'.repeat(empty)
+    } else {
+        bar = '🟢' + '█'.repeat(filled) + '░'.repeat(empty)
+    }
+    
+    return bar
 }
+
+export default handler

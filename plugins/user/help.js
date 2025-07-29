@@ -1,39 +1,41 @@
-export default {
-  name: 'userhelp',
-  alias: ['usercommands', 'userhelp'],
-  category: 'user',
-  desc: 'Show user management commands',
-  use: '',
-  async exec({ sock, m, args, prefix }) {
-    const helpMsg = `👤 *User Management Commands*
+export const handler = {
+    command: ['userhelp', 'usercommands', 'userhelp'],
+    tags: ['user'],
+    help: 'Show user management commands',
+    isAdmin: false,
+    isBotAdmin: false,
+    isOwner: false,
+    isGroup: false,
+    exec: async ({ sock, m, args }) => {
+        const helpMsg = `👤 *User Management Commands*
 
 📝 *Registration & Profile*
-• \`${prefix}register <name>\` - Register with the bot
-• \`${prefix}profile [@user]\` - View your profile
-• \`${prefix}bio [text]\` - Set or view your bio
+• \`!register <name>\` - Register with the bot
+• \`!profile [@user]\` - View your profile
+• \`!bio [text]\` - Set or view your bio
 
 🎯 *Level & Experience*
-• \`${prefix}level [@user]\` - View level information
-• \`${prefix}leaderboard [top]\` - View top users
-• \`${prefix}achievements\` - View achievements
+• \`!level [@user]\` - View level information
+• \`!leaderboard [top]\` - View top users
+• \`!achievements\` - View achievements
 
 💎 *Premium & Usage*
-• \`${prefix}premium [plan]\` - View premium plans
-• \`${prefix}usage\` - Check daily usage limits
+• \`!premium [plan]\` - View premium plans
+• \`!usage\` - Check daily usage limits
 
 📊 *Admin Commands* (Owner Only)
-• \`${prefix}useradmin ban @user [reason]\` - Ban a user
-• \`${prefix}useradmin unban @user\` - Unban a user
-• \`${prefix}useradmin warn @user [reason]\` - Warn a user
-• \`${prefix}useradmin search <query>\` - Search users
-• \`${prefix}useradmin info @user\` - Get user info
+• \`!useradmin ban @user [reason]\` - Ban a user
+• \`!useradmin unban @user\` - Unban a user
+• \`!useradmin warn @user [reason]\` - Warn a user
+• \`!useradmin search <query>\` - Search users
+• \`!useradmin info @user\` - Get user info
 
 💡 *Quick Start:*
-1. Register with \`${prefix}register <name>\`
-2. View your profile with \`${prefix}profile\`
-3. Set your bio with \`${prefix}bio <text>\`
-4. Check your level with \`${prefix}level\`
-5. View premium plans with \`${prefix}premium\`
+1. Register with \`!register <name>\`
+2. View your profile with \`!profile\`
+3. Set your bio with \`!bio <text>\`
+4. Check your level with \`!level\`
+5. View premium plans with \`!premium\`
 
 🎮 *Features:*
 • Level up by sending messages and using commands
@@ -52,6 +54,8 @@ export default {
 📞 *Need Help?*
 Contact the bot owner for support or premium upgrades.`
 
-    await m.reply(helpMsg)
-  }
+        await m.reply(helpMsg)
+    }
 }
+
+export default handler
