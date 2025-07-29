@@ -25,11 +25,56 @@ globalThis.storeConfig = {
     }
 }
 
+// Premium Configuration
+globalThis.premiumConfig = {
+    qris: {
+        imageUrl: ""
+    },
+    admin: {
+        owner: "",
+        premiumAdmin: ""
+    }
+}
+
 // Products Configuration
 globalThis.products = {
     nodejs: {},
     vps: {},
     python: {}
+}
+
+// Premium Products Configuration
+globalThis.premiumProducts = {
+    p1: {
+        name: "Premium Basic",
+        price: 25000,
+        features: [
+            "Unlimited AI requests",
+            "Priority support",
+            "Custom commands",
+            "Advanced features"
+        ]
+    },
+    p2: {
+        name: "Premium Pro",
+        price: 50000,
+        features: [
+            "All Basic features",
+            "Custom bot branding",
+            "Multi-device support",
+            "API access"
+        ]
+    },
+    p3: {
+        name: "Premium Enterprise",
+        price: 100000,
+        features: [
+            "All Pro features",
+            "White-label solution",
+            "Dedicated support",
+            "Custom integrations"
+        ]
+    }
 }
 
 // fungsi dasar
@@ -53,6 +98,16 @@ globalThis.getProduct = (code) => {
         }
     }
     return null
+}
+
+// Premium helper functions
+globalThis.isPremiumAdmin = (id) => {
+    return id === (globalThis.premiumConfig.admin.premiumAdmin || '') + '@s.whatsapp.net' || (globalThis.ownerNumber || []).includes(id)
+}
+
+globalThis.getPremiumProduct = (code) => {
+    const lowerCode = (code || '').toLowerCase()
+    return globalThis.premiumProducts?.[lowerCode] || null
 }
 
 // variabel apikey
