@@ -69,6 +69,17 @@ try {
 }
 
 const Database = {
+  // Connect method for models
+  async connect() {
+    try {
+      await db.read()
+      return db
+    } catch (error) {
+      console.error('Error connecting to database:', error)
+      return db
+    }
+  },
+
   // User methods
   async getUser(jid) {
     try {

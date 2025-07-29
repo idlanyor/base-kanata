@@ -14,6 +14,7 @@ import Database from './helper/database.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { messageFilter } from './helper/cooldown.js';
+import { userMiddleware } from './helper/userMiddleware.js';
 // import util from 'util';
 // import { processMessageWithAI } from './helper/gemini.js';
 
@@ -859,6 +860,11 @@ export async function startBot() {
                     if (m.type === 'text' && m.message?.conversation?.startsWith('!')) {
                         await Database.addCommand();
                     }
+                    
+                    // Apply user middleware
+                    await userMiddleware(sock, m, async () => {
+                        // Continue with message processing
+                    });
 
                     const { remoteJid } = m.key;
                     const sender = m.pushName || remoteJid;
