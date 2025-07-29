@@ -1,7 +1,8 @@
-import moment from 'moment';
 import Database from '../../helper/database.js';
 import os from 'os';
 import { networkInterfaces } from 'os';
+import { performance } from 'perf_hooks';
+import pidusage from 'pidusage';
 
 // Helper functions
 const formatBytes = (bytes) => {
@@ -12,7 +13,27 @@ const formatBytes = (bytes) => {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 };
 
-const getSystemInfo = () => {
+const getNetworkInfo = () => {
+    const nets = networkInterfaces();
+    const results = [];
+    for (const name of Object.keys(nets)) {
+        for (const net of nets[name]) {
+            if (net.family === 'IPv4' && !net.internal) {
+                results.push({
+                    name,
+                    address: net.address,
+                    netmask: net.netmask
+                });
+            }
+        }
+    }
+    return results;
+};
+
+const getSystemInfo = async () => {
+    // Process stats
+    const stats = await pidusage(process.pid);
+    
     // RAM info
     const totalRAM = os.totalmem();
     const freeRAM = os.freemem();
@@ -21,30 +42,21 @@ const getSystemInfo = () => {
     
     // CPU info
     const cpus = os.cpus();
-    const cpuModel = cpus[0].model;
-    const cpuSpeed = cpus[0].speed;
+    const cpuModel = cpus[0].model.replace(/\(R\)|@.*$/g, '').trim();
+    const cpuSpeed = (cpus[0].speed / 1000).toFixed(1);
     const cpuCores = cpus.length;
+    const cpuThreads = cpus.length * (cpuModel.includes('Intel') ? 2 : 1);
 
     // Network info
-    const nets = networkInterfaces();
-    const networkInfo = Object.keys(nets).map(name => ({
-        name,
-        addresses: nets[name].map(net => net.address).join(', ')
-    }));
-
-    // Host info
-    const hostname = os.hostname();
-    const platform = os.platform();
-    const release = os.release();
-    const arch = os.arch();
-
-    // Uptime
-    const uptime = os.uptime();
-    const hours = Math.floor(uptime / 3600);
-    const minutes = Math.floor((uptime % 3600) / 60);
-    const seconds = Math.floor(uptime % 60);
-
+    const network = getNetworkInfo();
+    
     return {
+        process: {
+            pid: process.pid,
+            memory: formatBytes(stats.memory),
+            cpu: stats.cpu.toFixed(2),
+            uptime: formatDuration(process.uptime())
+        },
         ram: {
             total: formatBytes(totalRAM),
             used: formatBytes(usedRAM),
@@ -54,107 +66,145 @@ const getSystemInfo = () => {
         cpu: {
             model: cpuModel,
             speed: cpuSpeed,
-            cores: cpuCores
+            cores: cpuCores,
+            threads: cpuThreads,
+            usage: ((os.loadavg()[0] * 100) / cpuThreads).toFixed(2)
         },
-        network: networkInfo,
-        host: {
-            name: hostname,
-            platform,
-            release,
-            arch
+        os: {
+            platform: `${os.platform()} ${os.release()}`,
+            arch: os.arch(),
+            version: os.version(),
+            uptime: formatDuration(os.uptime())
         },
-        uptime: {
-            hours,
-            minutes,
-            seconds
-        }
+        network: network[0] || { address: 'Not available' }
     };
 };
 
+const createProgressBar = (percent, length = 15) => {
+    const filled = Math.round((percent / 100) * length);
+    const empty = length - filled;
+    const filledChars = '■'.repeat(filled);
+    const emptyChars = '□'.repeat(empty);
+    const percentage = percent.toString().padStart(4, ' ');
+    return `${filledChars}${emptyChars} ${percentage}%`;
+};
+
+const formatDuration = (seconds) => {
+    const units = [
+        { label: 'd', mod: 86400 },
+        { label: 'h', mod: 3600 },
+        { label: 'm', mod: 60 },
+        { label: 's', mod: 1 }
+    ];
+
+    let remainingSeconds = Math.floor(seconds);
+    const parts = [];
+
+    for (const { label, mod } of units) {
+        if (remainingSeconds >= mod) {
+            const value = Math.floor(remainingSeconds / mod);
+            parts.push(`${value}${label}`);
+            remainingSeconds %= mod;
+        }
+    }
+
+    return parts.join(' ') || '0s';
+};
+
 export const handler = {
-    command: 'ping',
+    command: ['ping', 'status', 'info'],
     tags: ['tools', 'info'],
-    help: 'Mengecek status dan kecepatan respon bot',
-    isAdmin: false,
-    isBotAdmin: false, 
-    isOwner: false,
-    isGroup: false,
-    exec: async ({ sock, m, id }) => {
+    help: 'Mengecek status dan performa bot\n\n' +
+          'Format: !ping\n' +
+          'Alias: !status, !info',
+    exec: async ({ sock, m }) => {
         try {
-            // Hitung ping
-            const timestamp = m.messageTimestamp;
-            const now = Date.now();
-            const ping = moment.duration(now - moment(timestamp * 1000)).asSeconds();
+            const start = performance.now();
             
-            // Dapatkan info sistem
-            const sysInfo = getSystemInfo();
+            // Send initial reaction
+            await sock.sendMessage(m.chat, {
+                react: { text: '⌛', key: m.key }
+            });
+
+            // Get system info
+            const sysInfo = await getSystemInfo();
             
-            // Buat progress bar RAM
-            const progressBarLength = 10;
-            const filledBars = Math.round((sysInfo.ram.usage / 100) * progressBarLength);
-            const progressBar = '█'.repeat(filledBars) + '░'.repeat(progressBarLength - filledBars);
+            // Calculate response time
+            const end = performance.now();
+            const responseTime = ((end - start) / 1000).toFixed(3);
 
-            // Format network info
-            const networkText = sysInfo.network
-                .map(net => `➸ *${net.name}:* ${net.addresses}`)
-                .join('\n');
+            // Create progress bars
+            const ramBar = createProgressBar(parseFloat(sysInfo.ram.usage));
+            const cpuBar = createProgressBar(parseFloat(sysInfo.cpu.usage));
+            const processBar = createProgressBar(parseFloat(sysInfo.process.cpu));
 
-            // Kirim pesan respon
-            await sock.sendMessage(id, { 
-                text: `*🤖 KANATA BOT STATUS*\n\n` +
-                      `*⚡ Response Time:* ${ping} detik\n\n` +
-                      `*💻 Host Information*\n` +
-                      `➸ *Hostname:* ${sysInfo.host.name}\n` +
-                      `➸ *Platform:* ${sysInfo.host.platform}\n` +
-                      `➸ *Release:* ${sysInfo.host.release}\n` +
-                      `➸ *Architecture:* ${sysInfo.host.arch}\n\n` +
-                      `*🔧 CPU Information*\n` +
-                      `➸ *Model:* ${sysInfo.cpu.model}\n` +
-                      `➸ *Speed:* ${sysInfo.cpu.speed} MHz\n` +
-                      `➸ *Cores:* ${sysInfo.cpu.cores}\n\n` +
-                      `*🌐 Network Interfaces*\n${networkText}\n\n` +
-                      `*📊 Memory Usage*\n` +
-                      `➸ *RAM Usage:* ${progressBar} ${sysInfo.ram.usage}%\n` +
-                      `➸ *Total RAM:* ${sysInfo.ram.total}\n` +
-                      `➸ *Used RAM:* ${sysInfo.ram.used}\n` +
-                      `➸ *Free RAM:* ${sysInfo.ram.free}\n\n` +
-                      `*⏰ Uptime:* ${sysInfo.uptime.hours}h ${sysInfo.uptime.minutes}m ${sysInfo.uptime.seconds}s\n\n` +
-                      `_Powered by Kanata Bot_`,
+            // Format status message
+            const status = `*╭───「 KANATA BOT STATUS 」*
+├ *Performance Metrics*
+├ 📊 Response : ${responseTime}s
+├ 🔄 Uptime  : ${sysInfo.process.uptime}
+├ 🎯 PID     : ${sysInfo.process.pid}
+│
+├ *Resource Usage*
+├ 💻 CPU     : ${cpuBar}
+├ 💾 RAM     : ${ramBar}
+├ 📈 Process : ${processBar}
+│
+├ *System Info*
+├ 🖥️  Model   : ${sysInfo.cpu.model}
+├ ⚡ Speed   : ${sysInfo.cpu.speed} GHz
+├ 🧮 Cores   : ${sysInfo.cpu.cores}C/${sysInfo.cpu.threads}T
+├ 💽 Memory  : ${sysInfo.ram.used} / ${sysInfo.ram.total}
+│
+├ *Platform Details*
+├ 🛠️  OS      : ${sysInfo.os.platform}
+├ 📐 Arch    : ${sysInfo.os.arch}
+├ 🌐 IP      : ${sysInfo.network.address}
+├ ⏰ Uptime  : ${sysInfo.os.uptime}
+*╰───────────────*
+
+_Powered by Kanata Bot v2.0_`;
+
+            // Send status message with fancy header
+            await sock.sendMessage(m.chat, {
+                text: status,
                 contextInfo: {
-                    isForwarded: true,
-                    forwardingScore: 9999999,
                     externalAdReply: {
-                        title: `乂 Kanata Bot Status 乂`,
-                        body: `Response Time: ${ping}s`,
+                        title: '乂 System Monitor 乂',
+                        body: `Response Time: ${responseTime}s | RAM: ${sysInfo.ram.usage}% | CPU: ${sysInfo.cpu.usage}%`,
                         mediaType: 1,
                         previewType: 0,
                         renderLargerThumbnail: true,
-                        thumbnailUrl: `${globalThis.ppUrl}`,
-                        sourceUrl: `${globalThis.newsletterUrl}`
+                        thumbnailUrl: 'https://i.ibb.co/hgJVrRv/server.jpg',
+                        sourceUrl: 'https://github.com/rtwone/base-kanata'
                     }
                 }
             });
 
-            // Kirim reaksi berdasarkan kecepatan
-            let reactionEmoji = '🚀'; // Cepat
-            if (ping > 3) reactionEmoji = '⚡'; // Sedang  
-            if (ping > 5) reactionEmoji = '🐌'; // Lambat
-
-            await sock.sendMessage(id, {
-                react: {
-                    text: reactionEmoji,
-                    key: m.key
-                }
+            // Send reaction based on performance
+            const getPerformanceEmoji = (time) => {
+                if (time < 0.5) return '🚀'; // Excellent
+                if (time < 1.0) return '⚡'; // Very Good
+                if (time < 2.0) return '✨'; // Good
+                if (time < 3.0) return '⚠️'; // Warning
+                return '🐌'; // Slow
+            };
+            
+            await sock.sendMessage(m.chat, {
+                react: { text: getPerformanceEmoji(parseFloat(responseTime)), key: m.key }
             });
 
-            // Tambah statistik command
+            // Update stats
             await Database.addCommand();
 
         } catch (error) {
             console.error('Error in ping:', error);
-            await m.reply('❌ Terjadi kesalahan saat mengecek status bot');
+            await sock.sendMessage(m.chat, {
+                react: { text: '❌', key: m.key }
+            });
+            await m.reply('❌ Terjadi kesalahan: ' + error.message);
         }
     }
-}
+};
 
 export default handler;

@@ -13,6 +13,7 @@ import { addMessageHandler } from './helper/message.js';
 import Database from './helper/database.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { messageFilter } from './helper/cooldown.js';
 // import util from 'util';
 // import { processMessageWithAI } from './helper/gemini.js';
 
@@ -73,6 +74,57 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
     try {
         if (!command) return;
 
+
+        // --- FITUR ANTILINK GRUP ---
+        if (m.isGroup) {
+            // Whitelist link pada media (image, video, audio)
+            if (["image", "video", "audio"].includes(m.type)) {
+                // Lewati pengecekan antilink untuk caption media
+            } else if (messageFilter.isPlatformLink(command)) {
+                // Whitelist link platform populer (YouTube, Facebook, TikTok, dll)
+            } else {
+                const group = await Database.getGroup(m.chat);
+                const isAdmin = await m.isAdmin;
+                const isBotAdmin = await m.isBotAdmin;
+                const isOwner = await m.isOwner();
+                // Jika fitur antilink aktif, bot admin, pengirim bukan admin/owner, dan pesan mengandung link
+                if (group.antiLink && isBotAdmin && !isAdmin && !isOwner && messageFilter.isLink(command)) {
+                    await m.reply(`🚫 *Link terdeteksi!*
+Maaf, mengirim link di grup ini tidak diperbolehkan. Kamu akan dikeluarkan dari grup.`);
+                    await sock.sendMessage(m.chat, { delete: m.key });
+                    await sock.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
+                    return;
+                }
+            }
+        }
+
+        // --- FITUR ANTITOXIC GRUP ---
+        if (m.isGroup) {
+            const group = await Database.getGroup(m.chat);
+            const isBotAdmin = await m.isBotAdmin;
+            const isAdmin = await m.isAdmin;
+            const isOwner = await m.isOwner();
+            if (group.antiToxic && isBotAdmin && !isAdmin && !isOwner && messageFilter.isToxic(command)) {
+                // Tambah warning
+                const user = await Database.getUser(m.sender);
+                const warnings = (user.warnings || 0) + 1;
+                await Database.updateUser(m.sender, { warnings });
+                if (warnings < 3) {
+                    await m.reply(`🤬 *Kata kasar terdeteksi!*
+Maaf, kata toxic tidak diperbolehkan di grup ini.
+⚠️ Warning: ${warnings}/3
+Jika mencapai 3 warning, kamu akan dikeluarkan dari grup.`);
+                    await sock.sendMessage(m.chat, { delete: m.key });
+                } else {
+                    // Kick user
+                    await Database.updateUser(m.sender, { warnings: 0 });
+                    await m.reply(`🚫 Kamu telah dikeluarkan dari grup karena melanggar aturan toxic 3x!`);
+                    await sock.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
+                }
+                return;
+            }
+        }
+
         // Log informasi pesan masuk
         // const msgType = Object.keys(m.message)[0]
         // const isGroup = id.endsWith('@g.us')
@@ -98,6 +150,16 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
         if (settings.botMode === 'self-private') {
             if (id.endsWith('@g.us')) {
                 return
+            }
+        }
+
+        // --- RESTRIKSI BOT ADMIN DI GRUP ---
+        if (m.isGroup) {
+            const isBotAdmin = await m.isBotAdmin;
+            if (!isBotAdmin) {
+                // Bot bukan admin di grup, blokir semua akses
+                await m.reply(`🚫 *BOT TIDAK ADMIN*\n\nMaaf, bot harus menjadi admin di grup ini untuk dapat mengakses menu dan fitur.\n\nSilakan hubungi admin grup untuk menjadikan bot sebagai admin terlebih dahulu.`);
+                return;
             }
         }
 
@@ -670,117 +732,7 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
                 }
                 break;
 
-            case 'qw':
-                try {
-                    if (!args[0]) {
-                        await m.reply('❌ Masukkan pertanyaan!\n*Contoh:* !qw Siapa presiden Indonesia?');
-                        return;
-                    }
 
-                    await sock.sendMessage(m.chat, {
-                        react: { text: '⏳', key: m.key }
-                    });
-
-                    const question = encodeURIComponent(args);
-                    const style = encodeURIComponent('Selalu Balas saya dalam bahasa indonesia,dengan bahasa yang nonformal dan penuh emote ceria');
-                    const url = `https://fastrestapis.fasturl.cloud/aillm/superqwen?ask=${question}&style=${style}&sessionId=${m.chat}&model=qwen-max-latest&mode=search`;
-
-                    const response = await fetch(url, {
-                        method: 'GET',
-                        headers: {
-                            'accept': 'application/json'
-                        }
-                    });
-
-                    const data = await response.json();
-
-                    if (data.status === 200) {
-                        await m.reply({
-                            text: `🤖 *QWEN AI*\n\n${data.result}`,
-                            contextInfo: {
-                                externalAdReply: {
-                                    title: '乂 Qwen AI 乂',
-                                    body: `Question: ${args.join(' ')}`,
-                                    thumbnailUrl: 'https://s6.imgcdn.dev/YYoFZh.jpg',
-                                    sourceUrl: `${globalThis.newsletterUrl}`,
-                                    mediaType: 1,
-                                    renderLargerThumbnail: true
-                                }
-                            }
-                        });
-
-                        await sock.sendMessage(m.chat, {
-                            react: { text: '✅', key: m.key }
-                        });
-                    } else {
-                        throw new Error('Gagal mendapatkan respons dari AI');
-                    }
-
-                } catch (error) {
-                    console.error('Error in qw:', error);
-                    await m.reply('❌ Terjadi kesalahan saat berkomunikasi dengan Qwen AI');
-                    await sock.sendMessage(m.chat, {
-                        react: { text: '❌', key: m.key }
-                    });
-                }
-                break;
-
-            case 'del':
-            case 'delete':
-            case 'd':
-                try {
-                    // Cek apakah pengirim adalah admin atau owner
-                    if (!(await m.isAdmin) && !(await m.isOwner)) {
-                        await m.reply('❌ *Akses ditolak*\nHanya admin & owner yang dapat menghapus pesan!');
-                        return;
-                    }
-
-                    // Cek apakah bot adalah admin
-                    if (!(await m.isBotAdmin)) {
-                        await m.reply('❌ Bot harus menjadi admin untuk menghapus pesan!');
-                        return;
-                    }
-
-                    // Cek apakah ada pesan yang di-reply
-                    const quoted = m.message.extendedTextMessage?.contextInfo?.quotedMessage;
-                    if (!quoted) {
-                        await m.reply('❌ Reply pesan yang ingin dihapus!');
-                        return;
-                    }
-
-                    // Tambahkan reaksi proses
-                    await sock.sendMessage(m.chat, {
-                        react: { text: '⏳', key: m.key }
-                    });
-
-                    // Dapatkan key pesan yang di-reply
-                    const key = {
-                        remoteJid: m.chat,
-                        fromMe: m.message.extendedTextMessage.contextInfo.participant === sock.user.id,
-                        id: m.message.extendedTextMessage.contextInfo.stanzaId,
-                        participant: m.message.extendedTextMessage.contextInfo.participant
-                    };
-
-                    // Hapus pesan
-                    await sock.sendMessage(m.chat, { delete: key });
-
-                    // Tambahkan reaksi sukses
-                    await sock.sendMessage(m.chat, {
-                        react: { text: '✅', key: m.key }
-                    });
-
-                } catch (error) {
-                    console.error('Error in delete:', error);
-                    await m.reply('❌ Gagal menghapus pesan!');
-
-                    // Tambahkan reaksi error
-                    await sock.sendMessage(m.chat, {
-                        react: { text: '❌', key: m.key }
-                    });
-                }
-                break;
-
-            // Store commands
             case 'catalog':
             case 'katalog':
                 try {
@@ -987,6 +939,128 @@ export async function startBot() {
             sock.ev.on('call', (callEv) => {
                 call(callEv, sock)
             })
+
+            // Event handler untuk welcome dan leave message
+            sock.ev.on('group-participants.update', async (update) => {
+                try {
+                    const { id, participants, action } = update;
+
+                    // Cek apakah bot adalah admin untuk mengirim pesan
+                    const groupMetadata = await cacheGroupMetadata(sock, id);
+                    const botNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
+                    const botIsAdmin = groupMetadata.participants.find(p => p.id === botNumber)?.admin;
+
+                    if (!botIsAdmin) return; // Skip jika bot bukan admin
+
+                    for (const participant of participants) {
+                        // Skip jika participant adalah bot sendiri
+                        if (participant === botNumber) continue;
+
+                        if (action === 'add') {
+                            // Welcome message
+                            try {
+                                // Ambil setting grup
+                                const group = await Database.getGroup(id);
+                                if (!group.welcome) continue;
+                                // Ambil profile picture member baru
+                                let ppUrl;
+                                try {
+                                    ppUrl = await sock.profilePictureUrl(participant, 'image');
+                                } catch {
+                                    ppUrl = 'https://i.ibb.co/3Fh9V6p/avatar-default.png';
+                                }
+
+                                // Ambil nama member
+                                const contact = await sock.onWhatsApp(participant);
+                                const memberName = contact[0]?.notify || participant.split('@')[0];
+
+                                // Pesan welcome custom jika ada
+                                let welcomeMessage = group.welcomeMessage && group.welcomeMessage.trim() !== ''
+                                    ? group.welcomeMessage
+                                        .replace(/@user/gi, `@${participant.split('@')[0]}`)
+                                        .replace(/@group/gi, groupMetadata.subject)
+                                    : `👋 *SELAMAT DATANG!*\n\n` +
+                                        `Halo @${participant.split('@')[0]}! 🎉\n` +
+                                        `Selamat datang di grup *${groupMetadata.subject}*\n\n` +
+                                        `📝 *Silakan perkenalkan diri kamu:*\n` +
+                                        `• Nama lengkap :\n` +
+                                        `• Umur :\n` +
+                                        `• Hobi atau minat :\n` +
+                                        `• Jenis Kelamin :\n\n` +
+                                        `🤝 Mari berkenalan dan saling mengenal!\n` +
+                                        `Jangan lupa baca deskripsi grup ya~\n\n` +
+                                        `Semoga betah dan enjoy ! ✨`;
+
+                                await sock.sendMessage(id, {
+                                    text: welcomeMessage,
+                                    mentions: [participant],
+                                    contextInfo: {
+                                        externalAdReply: {
+                                            title: `Welcome ${memberName}! 🎉`,
+                                            body: `Selamat datang di ${groupMetadata.subject}`,
+                                            thumbnailUrl: ppUrl,
+                                            sourceUrl: globalThis.newsletterUrl || "https://whatsapp.com/channel/0029VagADOLLSmbaxFNswH1m",
+                                            mediaType: 1,
+                                            renderLargerThumbnail: true
+                                        }
+                                    }
+                                });
+
+                                logger.info(`👋 Welcome message sent to ${memberName} in ${groupMetadata.subject}`);
+
+                            } catch (error) {
+                                logger.error('Error sending welcome message:', error);
+                            }
+
+                        } else if (action === 'remove') {
+                            // Leave message
+                            try {
+                                // Ambil setting grup
+                                const group = await Database.getGroup(id);
+                                if (!group.leave) continue;
+                                // Ambil nama member yang keluar
+                                const contact = await sock.onWhatsApp(participant);
+                                const memberName = contact[0]?.notify || participant.split('@')[0];
+
+                                // Pesan leave custom jika ada
+                                let leaveMessage = group.leaveMessage && group.leaveMessage.trim() !== ''
+                                    ? group.leaveMessage
+                                        .replace(/@user/gi, `@${participant.split('@')[0]}`)
+                                        .replace(/@group/gi, groupMetadata.subject)
+                                    : `👋 *SELAMAT TINGGAL!*\n\n` +
+                                        `@${participant.split('@')[0]} telah meninggalkan grup 😢\n\n` +
+                                        `🌟 Terima kasih sudah menjadi bagian dari *${groupMetadata.subject}*\n` +
+                                        `🤝 Semoga kita bisa bertemu lagi di lain waktu\n` +
+                                        `🚪 Pintu grup ini selalu terbuka untukmu\n\n` +
+                                        `Sampai jumpa dan semoga sukses selalu! 🙏✨`;
+
+                                await sock.sendMessage(id, {
+                                    text: leaveMessage,
+                                    mentions: [participant],
+                                    contextInfo: {
+                                        externalAdReply: {
+                                            title: `Goodbye ${memberName} 👋`,
+                                            body: `Sampai jumpa dari ${groupMetadata.subject}`,
+                                            thumbnailUrl: globalThis.ppUrl || 'https://i.ibb.co/3Fh9V6p/avatar-default.png',
+                                            sourceUrl: globalThis.newsletterUrl || "https://whatsapp.com/channel/0029VagADOLLSmbaxFNswH1m",
+                                            mediaType: 1,
+                                            renderLargerThumbnail: true
+                                        }
+                                    }
+                                });
+
+                                logger.info(`👋 Leave message sent for ${memberName} in ${groupMetadata.subject}`);
+
+                            } catch (error) {
+                                logger.error('Error sending leave message:', error);
+                            }
+                        }
+                    }
+
+                } catch (error) {
+                    logger.error('Error in group-participants.update:', error);
+                }
+            });
         }).catch(error => logger.error('Kesalahan fatal memulai bot:', error));
 
     } catch (error) {

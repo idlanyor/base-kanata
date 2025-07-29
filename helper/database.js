@@ -98,12 +98,19 @@ const Database = {
           name: '',
           members: [],
           welcome: false,
+          leave: false,
           antiSpam: false,
           antiPromote: false,
           antiLink: false,
-          antiToxic: false
+          antiToxic: false,
+          welcomeMessage: '',
+          leaveMessage: ''
         }
         await db.write()
+      } else {
+        // Pastikan field custom message selalu ada
+        if (!('welcomeMessage' in db.data.groups[id])) db.data.groups[id].welcomeMessage = '';
+        if (!('leaveMessage' in db.data.groups[id])) db.data.groups[id].leaveMessage = '';
       }
       return db.data.groups[id]
     } catch (error) {

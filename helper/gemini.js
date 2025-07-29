@@ -61,6 +61,8 @@ async function getAllPluginCommands() {
     }
 }
 
+export { getAllPluginCommands };
+
 const messageHistory = new Map();
 const RATE_LIMIT_DURATION = 2000;
 const MAX_RETRIES = 2;

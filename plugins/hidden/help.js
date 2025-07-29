@@ -128,16 +128,23 @@ export const handler = {
                             [plugin.commands]
                             
                         if (cmdList.includes(searchCmd)) {
-                            let detailMenu = `📚 *Command Detail*\n\n`
-                            detailMenu += `Command: ${cmdList[0]}\n` // Tampilkan command pertama saja
-                            detailMenu += `Description: ${plugin.help}\n`
-                            detailMenu += `Category: ${category}\n`
-                            detailMenu += `Tags: ${plugin.tags?.join(', ') || '-'}\n\n`
-                            detailMenu += `Requirements:\n`
-                            detailMenu += `${plugin.isAdmin ? '✓' : '×'} Admin Group\n`
-                            detailMenu += `${plugin.isBotAdmin ? '✓' : '×'} Bot Admin\n`
-                            detailMenu += `${plugin.isOwner ? '✓' : '×'} Owner Bot\n`
-                            detailMenu += `${plugin.isGroup ? '✓' : '×'} In Group`
+                            const icon = categoryIcons[category] || '📁'
+                            let detailMenu = `╭─「 📚 COMMAND DETAIL 」\n` +
+                                            `├ Command: !${cmdList[0]}\n` +
+                                            `├ Description: ${plugin.help}\n` +
+                                            `├ Category: ${icon} ${category.toUpperCase()}\n` +
+                                            `├ Tags: ${plugin.tags?.join(', ') || '-'}\n` +
+                                            `│\n` +
+                                            `├ 📋 *REQUIREMENTS:*\n` +
+                                            `├ ${plugin.isAdmin ? '✅' : '❌'} Admin Group\n` +
+                                            `├ ${plugin.isBotAdmin ? '✅' : '❌'} Bot Admin\n` +
+                                            `├ ${plugin.isOwner ? '✅' : '❌'} Owner Bot\n` +
+                                            `├ ${plugin.isGroup ? '✅' : '❌'} In Group\n` +
+                                            `│\n` +
+                                            `├ 💡 *USAGE:*\n` +
+                                            `├ !${cmdList[0]} <parameter>\n` +
+                                            `├ Reply: !${cmdList[0]}\n` +
+                                            `╰──────────────────`
 
                             await m.reply(detailMenu)
                             found = true
@@ -153,25 +160,57 @@ export const handler = {
                 // return
             }
 
+            // Kategorisasi yang lebih baik
+            const categoryIcons = {
+                'main': '⚡',
+                'ai': '🤖',
+                'converter': '🔄',
+                'downloader': '📥',
+                'group': '👥',
+                'hidden': '🔒',
+                'misc': '🛠️',
+                'moderation': '🛡️',
+                'owner': '👑',
+                'search': '🔍',
+                'sticker': '🎯',
+                'tools': '⚙️'
+            }
+
+            // Urutan kategori yang diinginkan
+            const categoryOrder = [
+                'main', 'ai', 'downloader', 'search', 'converter', 
+                'sticker', 'tools', 'group', 'moderation', 'misc', 'owner', 'hidden'
+            ]
+
             let menuText = ''
+            let totalCommands = 0
 
-            // Iterasi setiap kategori dan plugin
-            for (const [category, plugins] of Object.entries(categories)) {
-                if (plugins.length === 0 || category.toUpperCase() === 'HIDDEN') continue
+            // Iterasi setiap kategori sesuai urutan
+            for (const category of categoryOrder) {
+                const plugins = categories[category]
+                if (!plugins || plugins.length === 0 || category.toUpperCase() === 'HIDDEN') continue
 
-                menuText += `\n┌─「 ${category.toUpperCase()} 」\n`
+                const icon = categoryIcons[category] || '📁'
+                const categoryName = category.charAt(0).toUpperCase() + category.slice(1)
                 
-                // Tambahkan setiap command
-                for (const plugin of plugins) {
+                menuText += `\n╭─「 ${icon} ${categoryName.toUpperCase()} 」\n`
+                
+                // Tambahkan setiap command dengan format yang lebih rapi
+                for (let i = 0; i < plugins.length; i++) {
+                    const plugin = plugins[i]
                     const cmdList = Array.isArray(plugin.commands) ? 
-                        [plugin.commands[0]] : // Ambil command pertama saja jika array
+                        [plugin.commands[0]] : 
                         plugin.commands
                     
-                    menuText += `├ !${cmdList[0]}\n` // Tampilkan command pertama saja
-                    menuText += `│ ${plugin.help || 'Tidak ada deskripsi'}\n`
+                    const isLast = i === plugins.length - 1
+                    const prefix = isLast ? '└─' : '├─'
+                    const subPrefix = isLast ? '   ' : '│  '
+                    
+                    menuText += `${prefix} .${cmdList[0]}\n`
+                    totalCommands++
                 }
                 
-                menuText += '└──────────────\n'
+                menuText += '╰──────────────────\n'
             }
 
             const time = new Date()
@@ -182,18 +221,32 @@ export const handler = {
             else if (hours >= 15 && hours < 18) greeting = 'Sore'
             else greeting = 'Malam'
 
+            // Footer dengan informasi tambahan
+            const footer = `\n📊 *STATISTIK MENU*
+├ Total Kategori: ${Object.keys(categories).filter(cat => categories[cat] && categories[cat].length > 0).length}
+├ Total Commands: ${totalCommands}
+├ Prefix: .
+├ Mode: ${globalThis.botMode || 'Public'}
+╰──────────────────
+
+💡 *TIPS PENGGUNAAN*
+├ Ketik !help <command> untuk detail
+├ Contoh: !help play
+├ Reply pesan dengan command untuk input
+├ Gunakan bot dengan bijak! 🤖
+
+⏰ *DICARI PADA:* ${new Date().toLocaleString('id-ID')}`
+
             await sock.sendMessage(m.chat, {
                 image: await fetch('https://files.catbox.moe/zpjs9i.jpeg'),
-                // gifPlayback: true,
-                // gifAttribution: 'KANATA.BOT',
-                caption: `╭─「 KANATA BOT 」
-├ Selamat ${greeting} 👋
-├ @${noTel}
-│
-├ Berikut adalah daftar menu
-├ yang tersedia:
-${menuText}
-╰──────────────────`,
+                caption: `╭─「 🎯 KANATA BOT 」\n` +
+                         `├ Selamat ${greeting} 👋\n` +
+                         `├ Hai @${noTel}\n` +
+                         `│\n` +
+                         `├ Berikut adalah daftar menu\n` +
+                         `├ yang tersedia untuk Anda:\n` +
+                         `${menuText}` +
+                         `${footer}`,
                 contextInfo: {
                     mentionedJid: [sender],
                     isForwarded: true,

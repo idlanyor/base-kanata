@@ -123,7 +123,7 @@ export async function orderCmd(sock, m) {
     try {
         // console.log(m.message?.extendedTextMessage?.text?.split(' '))
         const args = m.message?.conversation?.split(' ') || m.message?.extendedTextMessage?.text?.split(' ')
-        if (args.length < 2) {
+        if (args.length < 3) {
             return await sock.sendMessage(m.chat, {
                 text: `❌ *Format Salah!*
 
@@ -140,7 +140,7 @@ export async function orderCmd(sock, m) {
         }
 
         const productCode = args[1].toLowerCase()
-        const username = args[2] + '-antidonasi' || m.pushName || 'user'
+        const username = args[2] + '-antidonasi'
 
         // Validate product
         const product = globalThis.getProduct(productCode)
@@ -467,7 +467,8 @@ Server berhasil dibuat dan customer akan diberitahu.`
 🖥️ *DETAIL AKSES PANEL:*
 🌐 URL Panel: *${result.loginUrl}*
 📧 Email: *${result.credentials.email}*
-🔑 Password: Cek email Anda
+👤 Username: *${order.username}*
+🔑 Password: *1*
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✨ Server Anda sudah siap digunakan!

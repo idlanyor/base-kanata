@@ -63,7 +63,17 @@ export const messageFilter = {
     },
 
     isToxic(message) {
-        const toxicWords = ['anjing', 'bangsat', 'kontol', 'memek', 'jancok', 'babi']
+        const toxicWords = [
+            'anjing', 'bangsat', 'kontol', 'memek', 'jancok', 'babi',
+            'goblok', 'tolol', 'idiot', 'kampret', 'setan', 'asu',
+            'pantek', 'pepek', 'ngentot', 'kimak', 'tai', 'brengsek',
+            'monyet', 'bego', 'bodoh', 'sinting', 'fuck', 'bitch', 'bastard'
+        ]
         return toxicWords.some(word => message.toLowerCase().includes(word))
+    },
+
+    isPlatformLink(message) {
+        const platformRegex = /(?:https?:\/\/)?(?:www\.)?(youtube\.com|youtu\.be|facebook\.com|fb\.watch|tiktok\.com|instagram\.com|ig\.me|twitter\.com|x\.com|threads\.net|snackvideo\.com)\S*/i;
+        return platformRegex.test(message);
     }
 } 

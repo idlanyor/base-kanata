@@ -1,7 +1,6 @@
 import axios from 'axios'
-import { spotifyDownload } from '../../lib/scraper/spotify.js';
 export const handler = {
-    command: ['play', 'spotify'],
+    command: ['sp', 'spotify'],
     tags: ['downloader'],
     help: 'Mencari dan memutar lagu dari Spotify\n*Contoh:* !play JKT48 Heavy Rotation',
     exec: async ({ sock, m, args }) => {
@@ -13,7 +12,7 @@ export const handler = {
             }
 
             // Kirim reaksi proses
-            await sock.sendMessage(m.chat, { 
+            await sock.sendMessage(m.chat, {
                 react: { text: '🔍', key: m.key }
             });
 
@@ -32,7 +31,7 @@ export const handler = {
 
 _Sedang mengirim audio, mohon tunggu..._`;
 
-            await sock.sendMessage(m.chat, { 
+            await sock.sendMessage(m.chat, {
                 text: messageText,
                 contextInfo: {
                     externalAdReply: {
@@ -47,9 +46,9 @@ _Sedang mengirim audio, mohon tunggu..._`;
             });
 
             // Kirim audio
-            await sock.sendMessage(m.chat, { 
-                audio: { url: audio }, 
-                mimetype: 'audio/mpeg', 
+            await sock.sendMessage(m.chat, {
+                audio: { url: audio },
+                mimetype: 'audio/mpeg',
                 fileName: `${title}.mp3`,
                 contextInfo: {
                     externalAdReply: {
@@ -63,7 +62,7 @@ _Sedang mengirim audio, mohon tunggu..._`;
             }, { quoted: m });
 
             // Kirim reaksi sukses
-            await sock.sendMessage(m.chat, { 
+            await sock.sendMessage(m.chat, {
                 react: { text: '✅', key: m.key }
             });
 
@@ -78,25 +77,29 @@ _Sedang mengirim audio, mohon tunggu..._`;
 async function spotifySong(query) {
     try {
         // Cari URL Spotify
-        const { data: searchData } = await axios.get('https://fastrestapis.fasturl.cloud/music/spotify', {
-            params: { name: query }
+        const { data: searchData } = await axios.get('https://api.fasturl.link/music/spotify', {
+            params: { name: query },
+            headers: { 'X-API-Key': globalThis.apiKey.fasturl, 'accept': 'application/json' }
         });
         if (!searchData?.result?.[0]?.url) {
             throw new Error('Lagu tidak ditemukan');
         }
 
-        // Unduh lagu dari URL Spotify menggunakan spotifyDownload
-        const songData = await spotifyDownload(searchData.result[0].url);
-
-        // if (!songData.status || !songData.data.downloadUrl) {
-        //     throw new Error('Gagal mengunduh lagu');
-        // }
+        // Unduh lagu dari URL Spotify menggunakan API baru
+        const spotifyUrl = searchData.result[0].url;
+        const { data: songData } = await axios.get('https://ytdlpyton.nvlgroup.my.id/spotify/download/audio', {
+            params: { url: spotifyUrl, mode: 'url' },
+            headers: { 'X-API-Key': globalThis.apiKey.ytdl, 'accept': 'application/json' }
+        });
+        if (!songData || songData.status !== 'Success' || !songData.download_url) {
+            throw new Error('Gagal mengunduh lagu');
+        }
 
         return {
-            thumbnail: songData.data.coverImage || `${globalThis.ppUrl}`,
-            title: songData.data.title || query,
-            author: songData.data.artist || 'Unknown Artist',
-            audio: songData.data.downloadUrl
+            thumbnail: songData.thumbnail,
+            title: songData.title,
+            author: songData.artist,
+            audio: songData.download_url
         };
 
     } catch (error) {

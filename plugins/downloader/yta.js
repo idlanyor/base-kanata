@@ -2,7 +2,7 @@ import axios from 'axios'
 import yts from 'yt-search'
 
 export const handler = {
-    command: ['play', 'yta'],
+    command: ['play', 'yta','ymd'],
     tags: ['downloader'],
     help: 'Download video YouTube',
     isAdmin: false,
@@ -36,7 +36,6 @@ export const handler = {
                     return
                 }
                 videoUrl = searchResults.videos[0].url
-                await m.reply(`🎵 Ditemukan: ${searchResults.videos[0].title}`)
             }
 
             // Download audio using API

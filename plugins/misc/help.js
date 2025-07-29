@@ -116,6 +116,28 @@ export const handler = {
                 }
             }
 
+            // Kategorisasi yang lebih baik
+            const categoryIcons = {
+                'main': '⚡',
+                'ai': '🤖',
+                'converter': '🔄',
+                'downloader': '📥',
+                'group': '👥',
+                'hidden': '🔒',
+                'misc': '🛠️',
+                'moderation': '🛡️',
+                'owner': '👑',
+                'search': '🔍',
+                'sticker': '🎯',
+                'tools': '⚙️'
+            }
+
+            // Urutan kategori yang diinginkan
+            const categoryOrder = [
+                'main', 'ai', 'downloader', 'search', 'converter', 
+                'sticker', 'tools', 'group', 'moderation', 'misc', 'owner', 'hidden'
+            ]
+
             // Jika ada args (dari klik list), tampilkan detail command
             if (args) {
                 const searchCmd = args.toLowerCase()
@@ -127,16 +149,23 @@ export const handler = {
                             plugin.commands : [plugin.commands]
                             
                         if (cmdList.includes(searchCmd)) {
-                            let detailMenu = `📚 *Command Detail*\n\n`
-                            detailMenu += `Command: ${cmdList.join(', ')}\n`
-                            detailMenu += `Description: ${plugin.help}\n`
-                            detailMenu += `Category: ${category}\n`
-                            detailMenu += `Tags: ${plugin.tags?.join(', ') || '-'}\n\n`
-                            detailMenu += `Requirements:\n`
-                            detailMenu += `${plugin.isAdmin ? '✓' : '×'} Admin Group\n`
-                            detailMenu += `${plugin.isBotAdmin ? '✓' : '×'} Bot Admin\n`
-                            detailMenu += `${plugin.isOwner ? '✓' : '×'} Owner Bot\n`
-                            detailMenu += `${plugin.isGroup ? '✓' : '×'} In Group`
+                            const icon = categoryIcons[category] || '📁'
+                            let detailMenu = `╭─「 📚 COMMAND DETAIL 」\n` +
+                                            `├ Command: .${cmdList.join(', ')}\n` +
+                                            `├ Description: ${plugin.help}\n` +
+                                            `├ Category: ${icon} ${category.toUpperCase()}\n` +
+                                            `├ Tags: ${plugin.tags?.join(', ') || '-'}\n` +
+                                            `│\n` +
+                                            `├ 📋 *REQUIREMENTS:*\n` +
+                                            `├ ${plugin.isAdmin ? '✅' : '❌'} Admin Group\n` +
+                                            `├ ${plugin.isBotAdmin ? '✅' : '❌'} Bot Admin\n` +
+                                            `├ ${plugin.isOwner ? '✅' : '❌'} Owner Bot\n` +
+                                            `├ ${plugin.isGroup ? '✅' : '❌'} In Group\n` +
+                                            `│\n` +
+                                            `├ 💡 *USAGE:*\n` +
+                                            `├ .${cmdList[0]} <parameter>\n` +
+                                            `├ Reply: .${cmdList[0]}\n` +
+                                            `╰──────────────────`
 
                             await m.reply(detailMenu)
                             found = true
@@ -153,11 +182,14 @@ export const handler = {
             }
 
             let sections = []
+            let totalCommands = 0
 
-            // Iterasi setiap kategori dan plugin
-            for (const [category, plugins] of Object.entries(categories)) {
-                if (plugins.length === 0 || category.toUpperCase() === 'HIDDEN') continue
+            // Iterasi setiap kategori sesuai urutan yang diinginkan
+            for (const category of categoryOrder) {
+                const plugins = categories[category]
+                if (!plugins || plugins.length === 0 || category.toUpperCase() === 'HIDDEN') continue
 
+                const icon = categoryIcons[category] || '📁'
                 let rows = []
                 
                 // Tambahkan setiap command sebagai row
@@ -166,16 +198,17 @@ export const handler = {
                     
                     for (const cmd of cmdList) {
                         rows.push({
-                            title: `!${cmd}`,
+                            title: `.${cmd}`,
                             id: `help3 ${cmd}`
                         })
+                        totalCommands++
                     }
                 }
 
                 // Tambahkan section untuk kategori ini
                 if (rows.length > 0) {
                     sections.push({
-                        title: `📋 ${category.toUpperCase()}`,
+                        title: `${icon} ${category.toUpperCase()}`,
                         rows: rows
                     })
                 }
@@ -189,15 +222,31 @@ export const handler = {
             else if (hours >= 15 && hours < 18) greeting = 'Sore'
             else greeting = 'Malam'
 
+            // Footer dengan informasi tambahan
+            const footer = `📊 *STATISTIK MENU*
+├ Total Kategori: ${sections.length}
+├ Total Commands: ${totalCommands}
+├ Prefix: .
+├ Mode: ${globalThis.botMode || 'Public'}
+╰──────────────────
+
+💡 *TIPS PENGGUNAAN*
+├ Ketik .help3 <command> untuk detail
+├ Contoh: .help3 play
+├ Reply pesan dengan command untuk input
+├ Gunakan bot dengan bijak! 🤖
+
+⏰ *DICARI PADA:* ${new Date().toLocaleString('id-ID')}`
+
             await sock.sendMessage(m.chat, {
                 image: { url: `${globalThis.ppUrl}` },
-                caption: `╭─「 KANATA BOT 」
-├ Selamat ${greeting} 👋
-├ @${noTel}
-│
-├ Silahkan pilih kategori menu
-├ yang ingin ditampilkan
-╰──────────────────`,
+                caption: `╭─「 🎯 KANATA BOT 」\n` +
+                         `├ Selamat ${greeting} 👋\n` +
+                         `├ Hai @${noTel}\n` +
+                         `│\n` +
+                         `├ Silahkan pilih kategori menu\n` +
+                         `├ yang ingin ditampilkan:\n` +
+                         `${footer}`,
                 footer: '© 2024 Kanata Bot • Created by Roy',
                 buttons: [
                     {
@@ -223,7 +272,7 @@ export const handler = {
                     forwardingScore: 999,
                     externalAdReply: {
                         title: '乂 Kanata Bot Menu 乂',
-                        body: '`${globalThis.owner}`!',
+                        body: 'Interactive Menu System',
                         thumbnailUrl: `${globalThis.ppUrl}`,
                         sourceUrl: `${globalThis.newsletterUrl}`,
                         mediaType: 1,

@@ -153,7 +153,7 @@ class PterodactylAPI {
                     email: email,
                     first_name: firstName || username,
                     last_name: lastName || 'User',
-                    password: this.generatePassword()
+                    password: "1"
                 },
                 {
                     headers: {
@@ -598,15 +598,21 @@ class PterodactylAPI {
             // New egg ID mappings
             15: { // NodeJS
                 "NODE_VERSION": "18",
-                "MAIN_FILE": "index.js"
+                "MAIN_FILE": "index.js",
+                "AUTO_UPDATE": false,
+                "USER_UPLOAD":false
             },
-            16: {}, // VPS (empty environment variables)
+            16: { // VPS (empty environment variables)
+                "AUTO_UPDATE": false,
+                "USER_UPLOAD":false
+            },
             17: { // Python
                 "PYTHON_VERSION": "3.11",
-                "MAIN_FILE": "main.py"
+                "MAIN_FILE": "main.py",
+                "AUTO_UPDATE": false,
+                "USER_UPLOAD":false
             },
 
-            // Existing mappings for backward compatibility
             18: { // NodeJS (legacy)
                 "NODE_VERSION": "18",
                 "MAIN_FILE": "index.js"
