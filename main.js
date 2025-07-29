@@ -14,6 +14,8 @@ import Database from './helper/database.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { messageFilter } from './helper/cooldown.js';
+import { userMiddleware } from './helper/userMiddleware.js';
+import { groupModerationMiddleware, handleGroupEvents, handleAutoDelete, handleGroupLogging } from './helper/groupMiddleware.js';
 // import util from 'util';
 // import { processMessageWithAI } from './helper/gemini.js';
 
@@ -75,55 +77,10 @@ async function prosesPerintah({ command, sock, m, id, sender, noTel, attf }) {
         if (!command) return;
 
 
-        // --- FITUR ANTILINK GRUP ---
-        if (m.isGroup) {
-            // Whitelist link pada media (image, video, audio)
-            if (["image", "video", "audio"].includes(m.type)) {
-                // Lewati pengecekan antilink untuk caption media
-            } else if (messageFilter.isPlatformLink(command)) {
-                // Whitelist link platform populer (YouTube, Facebook, TikTok, dll)
-            } else {
-                const group = await Database.getGroup(m.chat);
-                const isAdmin = await m.isAdmin;
-                const isBotAdmin = await m.isBotAdmin;
-                const isOwner = await m.isOwner();
-                // Jika fitur antilink aktif, bot admin, pengirim bukan admin/owner, dan pesan mengandung link
-                if (group.antiLink && isBotAdmin && !isAdmin && !isOwner && messageFilter.isLink(command)) {
-                    await m.reply(`🚫 *Link terdeteksi!*
-Maaf, mengirim link di grup ini tidak diperbolehkan. Kamu akan dikeluarkan dari grup.`);
-                    await sock.sendMessage(m.chat, { delete: m.key });
-                    await sock.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
-                    return;
-                }
-            }
-        }
-
-        // --- FITUR ANTITOXIC GRUP ---
-        if (m.isGroup) {
-            const group = await Database.getGroup(m.chat);
-            const isBotAdmin = await m.isBotAdmin;
-            const isAdmin = await m.isAdmin;
-            const isOwner = await m.isOwner();
-            if (group.antiToxic && isBotAdmin && !isAdmin && !isOwner && messageFilter.isToxic(command)) {
-                // Tambah warning
-                const user = await Database.getUser(m.sender);
-                const warnings = (user.warnings || 0) + 1;
-                await Database.updateUser(m.sender, { warnings });
-                if (warnings < 3) {
-                    await m.reply(`🤬 *Kata kasar terdeteksi!*
-Maaf, kata toxic tidak diperbolehkan di grup ini.
-⚠️ Warning: ${warnings}/3
-Jika mencapai 3 warning, kamu akan dikeluarkan dari grup.`);
-                    await sock.sendMessage(m.chat, { delete: m.key });
-                } else {
-                    // Kick user
-                    await Database.updateUser(m.sender, { warnings: 0 });
-                    await m.reply(`🚫 Kamu telah dikeluarkan dari grup karena melanggar aturan toxic 3x!`);
-                    await sock.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
-                }
-                return;
-            }
-        }
+        // Apply group moderation middleware
+        await groupModerationMiddleware(sock, m, async () => {
+            // Continue with message processing
+        });
 
         // Log informasi pesan masuk
         // const msgType = Object.keys(m.message)[0]
@@ -859,6 +816,14 @@ export async function startBot() {
                     if (m.type === 'text' && m.message?.conversation?.startsWith('!')) {
                         await Database.addCommand();
                     }
+                    
+                    // Apply user middleware
+                    await userMiddleware(sock, m, async () => {
+                        // Continue with message processing
+                    });
+
+                    // Apply auto-delete for commands
+                    await handleAutoDelete(sock, m);
 
                     const { remoteJid } = m.key;
                     const sender = m.pushName || remoteJid;
@@ -933,6 +898,17 @@ export async function startBot() {
 
                 } catch (error) {
                     logger.error('Kesalahan menangani pesan:', error);
+                }
+            });
+
+            // Handle group events (join/leave)
+            sock.ev.on('groups.update', async events => {
+                try {
+                    for (const event of events) {
+                        await handleGroupEvents(sock, event);
+                    }
+                } catch (error) {
+                    logger.error('Error handling group events:', error);
                 }
             });
 
