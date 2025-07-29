@@ -794,6 +794,67 @@ Jika mencapai 3 warning, kamu akan dikeluarkan dari grup.`);
                 }
                 break;
 
+            // Premium Commands
+            case 'premium-catalog':
+                try {
+                    const { premiumCatalogCmd } = await import('./plugins/misc/premium.js');
+                    await premiumCatalogCmd(sock, m);
+                } catch (error) {
+                    logger.error('Error in premium catalog command:', error);
+                    await m.reply('❌ Terjadi kesalahan saat menampilkan katalog premium.');
+                }
+                break;
+
+            case 'premium-order':
+                try {
+                    const { premiumOrderCmd } = await import('./plugins/misc/premium.js');
+                    await premiumOrderCmd(sock, m);
+                } catch (error) {
+                    logger.error('Error in premium order command:', error);
+                    await m.reply('❌ Terjadi kesalahan saat memproses pesanan premium.');
+                }
+                break;
+
+            case 'premium-status':
+                try {
+                    const { premiumStatusCmd } = await import('./plugins/misc/premium.js');
+                    await premiumStatusCmd(sock, m);
+                } catch (error) {
+                    logger.error('Error in premium status command:', error);
+                    await m.reply('❌ Terjadi kesalahan saat mengecek status pesanan premium.');
+                }
+                break;
+
+            case 'my-premium-orders':
+                try {
+                    const { myPremiumOrdersCmd } = await import('./plugins/misc/premium.js');
+                    await myPremiumOrdersCmd(sock, m);
+                } catch (error) {
+                    logger.error('Error in my premium orders command:', error);
+                    await m.reply('❌ Terjadi kesalahan saat mengambil daftar pesanan premium.');
+                }
+                break;
+
+            case 'premium-payment-done':
+                try {
+                    const { premiumPaymentDoneCmd } = await import('./plugins/misc/premium.js');
+                    await premiumPaymentDoneCmd(sock, m);
+                } catch (error) {
+                    logger.error('Error in premium payment done command:', error);
+                    await m.reply('❌ Terjadi kesalahan saat memproses konfirmasi pembayaran premium.');
+                }
+                break;
+
+            case 'premium-payment-cancel':
+                try {
+                    const { premiumPaymentCancelCmd } = await import('./plugins/misc/premium.js');
+                    await premiumPaymentCancelCmd(sock, m);
+                } catch (error) {
+                    logger.error('Error in premium payment cancel command:', error);
+                    await m.reply('❌ Terjadi kesalahan saat membatalkan pembayaran premium.');
+                }
+                break;
+
             default:
                 // Perintah tidak ditemukan
                 break;
@@ -893,6 +954,14 @@ export async function startBot() {
                                     await handlePaymentProof(sock, m);
                                 } catch (error) {
                                     logger.error('Error handling payment proof:', error);
+                                }
+                                
+                                // Check if this is a premium payment proof image
+                                try {
+                                    const { handlePremiumPaymentProof } = await import('./plugins/misc/premium.js');
+                                    await handlePremiumPaymentProof(sock, m);
+                                } catch (error) {
+                                    logger.error('Error handling premium payment proof:', error);
                                 }
                             }
 
