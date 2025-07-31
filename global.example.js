@@ -25,12 +25,26 @@ globalThis.storeConfig = {
     }
 }
 
+// Premium Configuration
+globalThis.premiumConfig = {
+    qris: {
+        imageUrl: ""
+    },
+    admin: {
+        owner: "",
+        premiumAdmin: ""
+    }
+}
+
 // Products Configuration
 globalThis.products = {
     nodejs: {},
     vps: {},
     python: {}
 }
+
+// Premium products now use PREMIUM_PLANS from User model
+// No need for separate premium products configuration
 
 // fungsi dasar
 globalThis.isOwner = (id) => {
@@ -53,6 +67,11 @@ globalThis.getProduct = (code) => {
         }
     }
     return null
+}
+
+// Premium helper functions
+globalThis.isPremiumAdmin = (id) => {
+    return id === (globalThis.premiumConfig.admin.premiumAdmin || '') + '@s.whatsapp.net' || (globalThis.ownerNumber || []).includes(id)
 }
 
 // variabel apikey

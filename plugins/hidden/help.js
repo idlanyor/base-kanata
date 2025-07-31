@@ -13,7 +13,7 @@ function findJsFiles(dir) {
     list.forEach(file => {
         const filePath = path.join(dir, file)
         const stat = fs.statSync(filePath)
-        
+
         if (stat && stat.isDirectory()) {
             results = results.concat(findJsFiles(filePath))
         }
@@ -29,11 +29,11 @@ function getMainCases() {
     try {
         const mainPath = path.join(__dirname, '../../main.js')
         const mainContent = fs.readFileSync(mainPath, 'utf8')
-        
+
         // Cari case dalam switch statement
         const switchMatch = mainContent.match(/switch\s*\([^)]+\)\s*{([^}]+)}/s)
         if (!switchMatch) return []
-        
+
         const caseMatches = switchMatch[1].match(/case\s+['"]([^'"]+)['"]/g)
         if (!caseMatches) return []
 
@@ -44,7 +44,7 @@ function getMainCases() {
             const beforeCase = mainContent.substring(0, caseIndex)
             const commentMatch = beforeCase.match(/\/\/\s*([^\n]+)\s*\n\s*$/);
             const description = commentMatch ? commentMatch[1] : 'Tidak ada deskripsi'
-            
+
             return {
                 command: cmd,
                 help: description
@@ -98,7 +98,7 @@ export const handler = {
                     const category = path.basename(path.dirname(file))
                     if (!categories[category]) continue
 
-                    const commands = Array.isArray(plugin.handler.command) ? 
+                    const commands = Array.isArray(plugin.handler.command) ?
                         [plugin.handler.command[0]] : // Ambil command pertama saja jika array
                         [plugin.handler.command]
 
@@ -123,28 +123,28 @@ export const handler = {
 
                 for (const [category, plugins] of Object.entries(categories)) {
                     for (const plugin of plugins) {
-                        const cmdList = Array.isArray(plugin.commands) ? 
+                        const cmdList = Array.isArray(plugin.commands) ?
                             [plugin.commands[0]] : // Ambil command pertama saja jika array
                             [plugin.commands]
-                            
+
                         if (cmdList.includes(searchCmd)) {
                             const icon = categoryIcons[category] || '📁'
                             let detailMenu = `╭─「 📚 COMMAND DETAIL 」\n` +
-                                            `├ Command: !${cmdList[0]}\n` +
-                                            `├ Description: ${plugin.help}\n` +
-                                            `├ Category: ${icon} ${category.toUpperCase()}\n` +
-                                            `├ Tags: ${plugin.tags?.join(', ') || '-'}\n` +
-                                            `│\n` +
-                                            `├ 📋 *REQUIREMENTS:*\n` +
-                                            `├ ${plugin.isAdmin ? '✅' : '❌'} Admin Group\n` +
-                                            `├ ${plugin.isBotAdmin ? '✅' : '❌'} Bot Admin\n` +
-                                            `├ ${plugin.isOwner ? '✅' : '❌'} Owner Bot\n` +
-                                            `├ ${plugin.isGroup ? '✅' : '❌'} In Group\n` +
-                                            `│\n` +
-                                            `├ 💡 *USAGE:*\n` +
-                                            `├ !${cmdList[0]} <parameter>\n` +
-                                            `├ Reply: !${cmdList[0]}\n` +
-                                            `╰──────────────────`
+                                `├ Command: !${cmdList[0]}\n` +
+                                `├ Description: ${plugin.help}\n` +
+                                `├ Category: ${icon} ${category.toUpperCase()}\n` +
+                                `├ Tags: ${plugin.tags?.join(', ') || '-'}\n` +
+                                `│\n` +
+                                `├ 📋 *REQUIREMENTS:*\n` +
+                                `├ ${plugin.isAdmin ? '✅' : '❌'} Admin Group\n` +
+                                `├ ${plugin.isBotAdmin ? '✅' : '❌'} Bot Admin\n` +
+                                `├ ${plugin.isOwner ? '✅' : '❌'} Owner Bot\n` +
+                                `├ ${plugin.isGroup ? '✅' : '❌'} In Group\n` +
+                                `│\n` +
+                                `├ 💡 *USAGE:*\n` +
+                                `├ !${cmdList[0]} <parameter>\n` +
+                                `├ Reply: !${cmdList[0]}\n` +
+                                `╰──────────────────`
 
                             await m.reply(detailMenu)
                             found = true
@@ -178,7 +178,7 @@ export const handler = {
 
             // Urutan kategori yang diinginkan
             const categoryOrder = [
-                'main', 'ai', 'downloader', 'search', 'converter', 
+                'main', 'ai', 'downloader', 'search', 'converter',
                 'sticker', 'tools', 'group', 'moderation', 'misc', 'owner', 'hidden'
             ]
 
@@ -192,24 +192,24 @@ export const handler = {
 
                 const icon = categoryIcons[category] || '📁'
                 const categoryName = category.charAt(0).toUpperCase() + category.slice(1)
-                
+
                 menuText += `\n╭─「 ${icon} ${categoryName.toUpperCase()} 」\n`
-                
+
                 // Tambahkan setiap command dengan format yang lebih rapi
                 for (let i = 0; i < plugins.length; i++) {
                     const plugin = plugins[i]
-                    const cmdList = Array.isArray(plugin.commands) ? 
-                        [plugin.commands[0]] : 
+                    const cmdList = Array.isArray(plugin.commands) ?
+                        [plugin.commands[0]] :
                         plugin.commands
-                    
+
                     const isLast = i === plugins.length - 1
                     const prefix = isLast ? '└─' : '├─'
                     const subPrefix = isLast ? '   ' : '│  '
-                    
+
                     menuText += `${prefix} .${cmdList[0]}\n`
                     totalCommands++
                 }
-                
+
                 menuText += '╰──────────────────\n'
             }
 
@@ -240,31 +240,31 @@ export const handler = {
             await sock.sendMessage(m.chat, {
                 image: await fetch('https://files.catbox.moe/zpjs9i.jpeg'),
                 caption: `╭─「 🎯 KANATA BOT 」\n` +
-                         `├ Selamat ${greeting} 👋\n` +
-                         `├ Hai @${noTel}\n` +
-                         `│\n` +
-                         `├ Berikut adalah daftar menu\n` +
-                         `├ yang tersedia untuk Anda:\n` +
-                         `${menuText}` +
-                         `${footer}`,
+                    `├ Selamat ${greeting} 👋\n` +
+                    `├ Hai @${noTel}\n` +
+                    `│\n` +
+                    `├ Berikut adalah daftar menu\n` +
+                    `├ yang tersedia untuk Anda:\n` +
+                    `${menuText}` +
+                    `${footer}`,
                 contextInfo: {
-                    mentionedJid: [sender],
+                    mentionedJid: [m.sender],
                     isForwarded: true,
-                    forwardingScore: 999,
                     forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363305152329358@newsletter',
-                        newsletterName: 'Kanata Bot',
+                        newsletterJid: globalThis.newsLetterJid,
+                        newsletterName: '乂 Powered By : Roy 乂',
                         serverMessageId: -1
                     },
+                    forwardingScore: 999,
                     externalAdReply: {
-                        title: '乂 Kanata Bot Menu 乂',
-                        body: 'Click here to join our channel!',
-                        thumbnailUrl: `${globalThis.ppUrl}`,
+                        title: '乂 Kanata V3 Menu 乂',
+                        body: 'Welcome to Kanata Universe!',
+                        thumbnailUrl: globalThis.ppUrl,
                         sourceUrl: 'https://whatsapp.com/channel/0029VagADOLLSmbaxFNswH1m',
                         mediaType: 1,
-                        renderLargerThumbnail: true
+                        renderLargerThumbnail: false
                     }
-                }
+                },
             }, { quoted: m })
 
         } catch (error) {

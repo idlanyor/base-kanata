@@ -11,11 +11,11 @@ export const handler = {
     help: 'Efek audio untuk pesan suara\n\nPerintah:\n!bass - Efek bass boost\n!nightcore - Efek nightcore (pitch up + tempo up)\n!slow - Efek slow motion\n!robot - Efek suara robot\n!reverse - Membalik audio',
     tags: ['tools'],
     
-    async exec({ m,cmd, sock }) {
+    async exec({ m,cmd, sock, args }) {
         try {
-            
             // Cek apakah ada audio yang di-reply
-            if (!m.quoted || !m.quoted.message?.audioMessage) {
+            if (!args || !m.quoted || !m.quoted.message?.audioMessage) {
+                console.log(args);
                 await m.reply('Efek audio untuk pesan suara\n\nPerintah:\n!bass - Efek bass boost\n!nightcore - Efek nightcore (pitch up + tempo up)\n!slow - Efek slow motion\n!robot - Efek suara robot\n!reverse - Membalik audio');
                 return;
             }
