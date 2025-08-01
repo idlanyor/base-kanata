@@ -1,4 +1,4 @@
-import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, useMultiFileAuthState, DisconnectReason, Browsers, getAggregateVotesInPollMessage } from '@fizzxydev/baileys-pro';
+import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, useMultiFileAuthState, DisconnectReason, Browsers, getAggregateVotesInPollMessage } from '@whiskeysockets/baileys';
 import pino from "pino";
 import NodeCache from "node-cache";
 import fs from 'fs-extra';
@@ -108,7 +108,7 @@ class Kanata {
                         if (retryCount >= maxRetries) {
                             logger.error("Max pairing retries reached, cleaning up session...");
                             await this.cleanup();
-                            // await fs.remove(`./${this.sessionId}`);
+                            await fs.remove(`./${this.sessionId}`);
                             
                             // Use debounced restart instead of immediate recursion
                             this.scheduleRestart(5000); // 5 second delay

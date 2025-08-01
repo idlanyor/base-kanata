@@ -1,4 +1,4 @@
-import { downloadMediaMessage } from '@fizzxydev/baileys-pro'
+import { downloadMediaMessage } from '@whiskeysockets/baileys'
 
 export const handler = {
     command: ['readvo', 'rvo'],

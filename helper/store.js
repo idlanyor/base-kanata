@@ -1,4 +1,4 @@
-import { makeInMemoryStore } from '@fizzxydev/baileys-pro'
+import { makeInMemoryStore } from '@whiskeysockets/baileys'
 import pino from 'pino'
 import { logger } from './logger.js'
 

@@ -10,3 +10,4 @@ db.*
 *.tar.gz
 *.rar
 global.*
+global-*.js
