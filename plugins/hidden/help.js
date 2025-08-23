@@ -6,7 +6,7 @@ const { proto, generateWAMessageFromContent } = pkg
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// Fungsi untuk mencari file JS
+// Fungsi untuk mencari file JS - hanya dari direktori utama
 function findJsFiles(dir) {
     let results = []
     const list = fs.readdirSync(dir)
@@ -14,10 +14,8 @@ function findJsFiles(dir) {
         const filePath = path.join(dir, file)
         const stat = fs.statSync(filePath)
 
-        if (stat && stat.isDirectory()) {
-            results = results.concat(findJsFiles(filePath))
-        }
-        else if (file.endsWith('.js')) {
+        // Hanya ambil file .js dari direktori utama, tidak rekursif ke subfolder
+        if (stat && stat.isFile() && file.endsWith('.js')) {
             results.push(filePath)
         }
     })
@@ -68,12 +66,7 @@ export const handler = {
         try {
             const pluginsDir = path.join(__dirname, '../')
             const categories = {
-                'main': [], // Kategori untuk case dari main.js
-                ...Object.fromEntries(
-                    fs.readdirSync(pluginsDir)
-                        .filter(f => fs.statSync(path.join(pluginsDir, f)).isDirectory())
-                        .map(dir => [dir, []])
-                )
+                'main': [], // Kategori untuk case dari main.js dan plugin langsung
             }
 
             // Tambahkan case dari main.js
@@ -88,22 +81,17 @@ export const handler = {
                 isGroup: false
             }))
 
-            // Load plugin commands
+            // Load plugin commands langsung dari folder plugins
             const pluginFiles = findJsFiles(pluginsDir)
             for (const file of pluginFiles) {
                 try {
                     const plugin = await import('file://' + file)
                     if (!plugin.handler) continue
 
-                    const category = path.basename(path.dirname(file))
-                    if (!categories[category]) continue
-
-                    const commands = Array.isArray(plugin.handler.command) ?
-                        [plugin.handler.command[0]] : // Ambil command pertama saja jika array
-                        [plugin.handler.command]
-
-                    categories[category].push({
-                        commands: commands.map(cmd => typeof cmd === 'string' ? cmd : cmd.source),
+                    categories['main'].push({
+                        commands: Array.isArray(plugin.handler.command) ?
+                            [plugin.handler.command[0]] : // Ambil command pertama saja jika array
+                            [plugin.handler.command],
                         help: plugin.handler.help || 'Tidak ada deskripsi',
                         tags: plugin.handler.tags || [],
                         isAdmin: plugin.handler.isAdmin,

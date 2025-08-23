@@ -16,28 +16,10 @@ async function loadPlugins(dir) {
         const filePath = path.join(dir, file);
         const stat = fs.statSync(filePath);
 
-        if (stat && stat.isDirectory()) {
-
-
-            const subPlugins = await loadPlugins(filePath);
-            const folderName = path.basename(filePath);
-            if (folderName === 'hidden') {
-                console.log(`Subfolder ${folderName} dikecualikan`);
-                continue;
-            }
-            if (!plugins[folderName]) {
-                plugins[folderName] = [];
-            }
-            // Gabungake subPlugins ing folder utama
-            Object.entries(subPlugins).forEach(([subFolder, pluginFiles]) => {
-                if (!plugins[subFolder]) {
-                    plugins[subFolder] = [];
-                }
-                plugins[subFolder].push(...pluginFiles);
-            });
-        } else if (file.endsWith('.js')) {
+        // Hanya proses file .js langsung dari direktori plugins, tidak rekursif
+        if (stat && stat.isFile() && file.endsWith('.js')) {
             const { default: plugin, description, handler } = await import(pathToFileURL(filePath).href);
-            const folderName = path.basename(path.dirname(filePath)); // Nentokake folder induk
+            const folderName = 'main'; // Semua plugin langsung dari folder plugins masuk kategori main
             if (!plugins[folderName]) {
                 plugins[folderName] = [];
             }
@@ -61,7 +43,7 @@ export async function helpMessage() {
 
     for (const kanata in plugins) {
         // Nambah header folder
-        caption += `❏┄┅━┅┄〈 〘 ${kanata.toUpperCase()} 〙\n`;
+        caption += `❏┄┅━┅┄〈 〘 ${kanata.toUpperCase()} 〙\n`;
 
         plugins[kanata].forEach(plugin => {
             const command = plugin.handler; 

@@ -1,6 +1,12 @@
 import Database from './database.js'
 import pkg from 'baileys'
+import { resolve } from 'path'
 const { generateWAMessageFromContent, proto } = pkg
+import { getMedia } from './mediaMsg.js';
+import { readFileSync } from 'fs';
+
+
+const thumbPath = resolve(import.meta.dirname, '../media/thumbnail.jpg')
 
 export function addMessageHandler(m, sock) {
     m.chat = m.key.remoteJid;
@@ -69,22 +75,30 @@ export function addMessageHandler(m, sock) {
 
     m.reply = async (text, quoted = true, useContext = true, newsletterName = `${globalThis.botName}`) => {
         const defaultContext = {
-            isForwarded: true,
-            forwardingScore: 9999999,
-            forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363305152329358@newsletter',
-                newsletterName: newsletterName,
-                serverMessageId: -1
-            },
+            forwardingScore: 256,
             externalAdReply: {
                 title: `乂 ${globalThis.botName} 乂`,
                 body: globalThis.owner,
-                thumbnailUrl: `${globalThis.ppUrl}`,
+                mediaUrl: "https://antidonasi.web.id",
+                description: 'Kanata-V3',
+                previewType: "PHOTO",
+                thumbnail: readFileSync(thumbPath),
                 sourceUrl: "https://whatsapp.com/channel/0029VagADOLLSmbaxFNswH1m",
-                mediaType: 1,
-                renderLargerThumbnail: true
             }
         }
+        // contextInfo: {
+        //     forwardingScore: 256,
+        //     isForwarded: false,
+        //     externalAdReply: {
+        //         title: global.ucapan,
+        //         body: wm,
+        //         mediaUrl: sgw,
+        //         description: namebot,
+        //         previewType: "PHOTO",
+        //         thumbnail: fs.readFileSync(thumbPath),
+        //         sourceUrl: sgw,
+        //     }
+        // }
 
         if (typeof text === 'string') {
             return await sock.sendMessage(m.chat, {
@@ -326,4 +340,3 @@ function getQuotedText(message) {
     return null;
 }
 
-import { getMedia } from './mediaMsg.js';   

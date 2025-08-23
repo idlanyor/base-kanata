@@ -2,11 +2,26 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import Database from '../../helper/database.js';
-import { getMainCases } from '../misc/help.js';
-import { findJsFiles } from '../../main.js';
+import { getMainCases } from '../tool-help.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Fungsi findJsFiles yang hanya membaca file langsung dari direktori
+function findJsFiles(dir) {
+    let results = [];
+    const list = fs.readdirSync(dir);
+    list.forEach(file => {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+
+        // Hanya ambil file .js dari direktori utama, tidak rekursif ke subfolder
+        if (stat && stat.isFile() && file.endsWith('.js')) {
+            results.push(filePath);
+        }
+    });
+    return results;
+}
 
 const handler = {
     command: ['help4', 'h4', 'menu4'],
@@ -17,12 +32,7 @@ const handler = {
             // Load semua plugin commands
             const pluginsDir = path.join(__dirname, '../')
             const categories = {
-                'main': [], // Untuk case dari main.js
-                ...Object.fromEntries(
-                    fs.readdirSync(pluginsDir)
-                        .filter(f => fs.statSync(path.join(pluginsDir, f)).isDirectory())
-                        .map(dir => [dir, []])
-                )
+                'main': [], // Untuk case dari main.js dan plugin langsung
             }
 
             // Tambahkan case dari main.js
@@ -33,17 +43,14 @@ const handler = {
                 tags: ['main']
             }))
 
-            // Load plugin commands
+            // Load plugin commands langsung dari folder plugins
             const pluginFiles = findJsFiles(pluginsDir)
             for (const file of pluginFiles) {
                 try {
                     const plugin = await import('file://' + file)
                     if (!plugin.handler) continue
 
-                    const category = path.basename(path.dirname(file))
-                    if (!categories[category] || category.toUpperCase() === 'HIDDEN') continue
-
-                    categories[category].push({
+                    categories['main'].push({
                         commands: Array.isArray(plugin.handler.command) ? 
                             plugin.handler.command : 
                             [plugin.handler.command],
@@ -77,7 +84,7 @@ const handler = {
 
             // Menu per kategori
             for (const [category, plugins] of Object.entries(categories)) {
-                if (plugins.length === 0 || category.toUpperCase() === 'HIDDEN') continue
+                if (plugins.length === 0) continue
 
                 menuText += `│ *${category.toUpperCase()}*\n`
                 for (const plugin of plugins) {

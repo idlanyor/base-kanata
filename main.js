@@ -30,10 +30,8 @@ export function findJsFiles(dir) {
         const filePath = path.join(dir, file);
         const stat = fs.statSync(filePath);
 
-        if (stat && stat.isDirectory()) {
-            results = results.concat(findJsFiles(filePath));
-        }
-        else if (file.endsWith('.js')) {
+        // Hanya ambil file .js dari direktori utama, tidak rekursif ke subfolder
+        if (stat && stat.isFile() && file.endsWith('.js')) {
             results.push(filePath);
         }
     });
