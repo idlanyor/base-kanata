@@ -274,14 +274,7 @@ Jika mencapai 3 warning, kamu akan dikeluarkan dari grup.`);
 
                     // Ambil semua plugin commands
                     const pluginsDir = path.join(__dirname, 'plugins')
-                    const categories = {
-                        'main': [],
-                        ...Object.fromEntries(
-                            fs.readdirSync(pluginsDir)
-                                .filter(f => fs.statSync(path.join(pluginsDir, f)).isDirectory())
-                                .map(dir => [dir, []])
-                        )
-                    }
+                    const categories = {}
 
                     // Load plugin commands
                     const pluginFiles = findJsFiles(pluginsDir)
@@ -290,8 +283,13 @@ Jika mencapai 3 warning, kamu akan dikeluarkan dari grup.`);
                             const plugin = await import(pathToFileURL(file).href)
                             if (!plugin.handler) continue
 
-                            const category = path.basename(path.dirname(file))
-                            if (!categories[category] || category.toUpperCase() === 'HIDDEN') continue
+                            // Gunakan handler.category atau 'main' sebagai default
+                            const category = plugin.handler.category || 'main'
+                            if (category.toUpperCase() === 'HIDDEN') continue
+
+                            if (!categories[category]) {
+                                categories[category] = []
+                            }
 
                             const commands = Array.isArray(plugin.handler.command) ?
                                 plugin.handler.command :

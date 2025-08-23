@@ -16,10 +16,13 @@ async function loadPlugins(dir) {
         const filePath = path.join(dir, file);
         const stat = fs.statSync(filePath);
 
-        // Hanya proses file .js langsung dari direktori plugins, tidak rekursif
+        // Hanya proses file .js langsung dari direktori plugins
         if (stat && stat.isFile() && file.endsWith('.js')) {
             const { default: plugin, description, handler } = await import(pathToFileURL(filePath).href);
-            const folderName = 'main'; // Semua plugin langsung dari folder plugins masuk kategori main
+            
+            // Gunakan handler.category atau 'main' sebagai default
+            const folderName = handler?.category || 'main';
+            
             if (!plugins[folderName]) {
                 plugins[folderName] = [];
             }

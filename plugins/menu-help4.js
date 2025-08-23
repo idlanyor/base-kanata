@@ -45,12 +45,20 @@ const handler = {
 
             // Load plugin commands langsung dari folder plugins
             const pluginFiles = findJsFiles(pluginsDir)
+            
             for (const file of pluginFiles) {
                 try {
                     const plugin = await import('file://' + file)
                     if (!plugin.handler) continue
-
-                    categories['main'].push({
+            
+                    // Gunakan handler.category untuk kategorisasi
+                    const category = plugin.handler.category || 'main'
+                    
+                    if (!categories[category]) {
+                        categories[category] = []
+                    }
+            
+                    categories[category].push({
                         commands: Array.isArray(plugin.handler.command) ? 
                             plugin.handler.command : 
                             [plugin.handler.command],

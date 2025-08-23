@@ -41,7 +41,8 @@ async function getAllPluginCommands() {
                     if (typeof h === 'string') {
                         plugins[h.toLowerCase()] = {
                             ...plugin.handler,
-                            description: plugin.handler.help || plugin.handler.tags?.join(', ') || 'No description'
+                            description: plugin.handler.help || plugin.handler.tags?.join(', ') || 'No description',
+                            category: plugin.handler.category || 'main'
                         };
                     }
                 });
@@ -307,4 +308,4 @@ export async function processMessageWithAI(message, sender) {
         logger.error("Error in processMessageWithAI:", error);
         return null;
     }
-} 
+}
