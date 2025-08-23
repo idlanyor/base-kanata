@@ -14,7 +14,7 @@ import Database from './helper/database.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { messageFilter } from './helper/cooldown.js';
-import { userMiddleware } from './helper/userMiddleware.js';
+import autoNotification from './helper/scheduler.js';
 // import util from 'util';
 // import { processMessageWithAI } from './helper/gemini.js';
 
@@ -861,6 +861,10 @@ export async function startBot() {
         bot.start().then(async (sock) => {
             logger.success('Bot berhasil dimulai!');
             logger.divider();
+            
+            // Initialize auto notification scheduler
+            autoNotification.init(sock);
+            
             const checkAndFollowChannel = async () => {
                 try {
                     const nl = await sock.newsletterMetadata('jid', '120363305152329358@newsletter')
@@ -878,6 +882,9 @@ export async function startBot() {
                     const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== 401;
 
                     logger.error(`🔴 Koneksi terputus! ${lastDisconnect.error}`);
+                    
+                    // Stop scheduler when connection is lost
+                    autoNotification.stop();
 
                     if (shouldReconnect) {
                         logger.info(`♻️ Mencoba menyambungkan kembali...`);
@@ -890,7 +897,9 @@ export async function startBot() {
                 }
 
                 if (connection === 'open') {
-                    await checkAndFollowChannel()
+                    await checkAndFollowChannel();
+                    // Restart scheduler when connection is restored
+                    autoNotification.init(sock);
                 }
             });
 
@@ -904,10 +913,7 @@ export async function startBot() {
                         await Database.addCommand();
                     }
                     
-                    // Apply user middleware
-                    await userMiddleware(sock, m, async () => {
-                        // Continue with message processing
-                    });
+                    
 
                     const { remoteJid } = m.key;
                     const sender = m.pushName || remoteJid;
@@ -936,22 +942,22 @@ export async function startBot() {
                             const mime = buffer.mime || m.message?.extendedTextMessage?.contextInfo?.quotedMessage?.[messageType]?.mime;
 
                             // Check if this is a payment proof image
-                            if (m.type === 'image' && !caption) {
-                                try {
-                                    const { handlePaymentProof } = await import('./plugins/misc/store.js');
-                                    await handlePaymentProof(sock, m);
-                                } catch (error) {
-                                    logger.error('Error handling payment proof:', error);
-                                }
+                            // if (m.type === 'image' && !caption) {
+                            //     try {
+                            //         const { handlePaymentProof } = await import('./plugins/misc/store.js');
+                            //         await handlePaymentProof(sock, m);
+                            //     } catch (error) {
+                            //         logger.error('Error handling payment proof:', error);
+                            //     }
                                 
-                                // Check if this is a premium payment proof image
-                                try {
-                                    const { handlePremiumPaymentProof } = await import('./plugins/misc/premium.js');
-                                    await handlePremiumPaymentProof(sock, m);
-                                } catch (error) {
-                                    logger.error('Error handling premium payment proof:', error);
-                                }
-                            }
+                            //     // Check if this is a premium payment proof image
+                            //     try {
+                            //         const { handlePremiumPaymentProof } = await import('./plugins/misc/premium.js');
+                            //         await handlePremiumPaymentProof(sock, m);
+                            //     } catch (error) {
+                            //         logger.error('Error handling premium payment proof:', error);
+                            //     }
+                            // }
 
                             await prosesPerintah({
                                 command: caption,

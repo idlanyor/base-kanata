@@ -1,8 +1,8 @@
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import Database from '../../helper/database.js';
-import { getMainCases } from '../tool-help.js';
+import Database from '../helper/database.js';
+import { getMainCases } from './tool-help.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -20,7 +20,7 @@
     "@vreden/youtube_scraper": "latest",
     "adm-zip": "^0.5.16",
     "axios": "^1.11.0",
-    "baileys": "npm:@neoxr/baileys@latest",
+    "baileys": "npm:@yupra/baileys@latest",
     "chalk": "^5.6.0",
     "figlet": "^1.8.2",
     "file-type": "^21.0.0",
