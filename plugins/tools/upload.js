@@ -1,3 +1,4 @@
+import { Catbox } from 'node-catbox'
 import FormData from 'form-data'
 import axios from 'axios'
 import fs from 'fs'
@@ -8,6 +9,8 @@ export const handler = {
     tags: ['tools'],
     help: 'Upload file ke catbox.moe\n\nFormat: Kirim/Reply file dengan caption !upload',
     exec: async ({ sock, m }) => {
+        const catbox = new Catbox();
+
         try {
             let buffer
             let fileName
@@ -21,10 +24,10 @@ export const handler = {
             if (m.quoted) {
                 const quotedMessage = m.quoted.message
                 const messageType = Object.keys(quotedMessage)[0]
-                
-                if (messageType === 'imageMessage' || 
-                    messageType === 'videoMessage' || 
-                    messageType === 'documentMessage' || 
+
+                if (messageType === 'imageMessage' ||
+                    messageType === 'videoMessage' ||
+                    messageType === 'documentMessage' ||
                     messageType === 'audioMessage') {
                     buffer = await m.quoted.download()
                     fileName = quotedMessage[messageType].fileName || 'file'
@@ -33,10 +36,10 @@ export const handler = {
                 }
             } else if (m.message) {
                 const messageType = Object.keys(m.message)[0]
-                
-                if (messageType === 'imageMessage' || 
-                    messageType === 'videoMessage' || 
-                    messageType === 'documentMessage' || 
+
+                if (messageType === 'imageMessage' ||
+                    messageType === 'videoMessage' ||
+                    messageType === 'documentMessage' ||
                     messageType === 'audioMessage') {
                     buffer = await m.download()
                     fileName = m.message[messageType].fileName || 'file'
@@ -72,7 +75,7 @@ export const handler = {
 
             if (response.data.startsWith('https://')) {
                 await m.reply(`✅ File berhasil diupload!\n\n🔗 URL: ${response.data}`)
-                
+
                 // Add success reaction
                 await sock.sendMessage(m.chat, {
                     react: { text: '✅', key: m.key }

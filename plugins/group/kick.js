@@ -58,7 +58,6 @@ export const handler = {
             })
 
             if (validUsers.length === 0) {
-                await m.reply('❌ Tidak ada user valid untuk dikeluarkan')
                 return
             }
 

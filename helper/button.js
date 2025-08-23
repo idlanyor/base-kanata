@@ -1,4 +1,4 @@
-import pkg from '@whiskeysockets/baileys';
+import pkg from 'baileys';
 const { generateWAMessageFromContent, proto } = pkg;
 export const sendIAMessage = async (jid, btns = [], quoted, opts = {}, sock) => {
     let messageContent = {

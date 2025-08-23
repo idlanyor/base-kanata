@@ -1,4 +1,4 @@
-import { makeInMemoryStore } from '@whiskeysockets/baileys'
+import { makeInMemoryStore } from 'baileys'
 import pino from 'pino'
 import { logger } from './logger.js'
 

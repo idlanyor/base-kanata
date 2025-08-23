@@ -8,7 +8,7 @@ import { findJsFiles } from '../../main.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const handler = {
+const handler = {
     command: ['help4', 'h4', 'menu4'],
     tags: ['info'],
     help: 'Menampilkan menu bantuan',
@@ -114,3 +114,5 @@ export const handler = {
         }
     }
 }
+
+export default handler;

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { fileTypeFromBuffer } from 'file-type';
 
 export const handler = {
-    command: ['aigambar', 'aiimg', 'visi'],
+    command: ['aigambar', 'visi', 'kanata'],
     tags: ['ai'],
     help: 'Analisis gambar menggunakan AI\n\nFormat: Kirim/Reply gambar dengan caption !aigambar [pertanyaan]',
     
@@ -30,7 +30,7 @@ export const handler = {
             } else if (m.message && m.message.imageMessage) {
                 buffer = await m.download();
             } else {
-                await m.reply(`🤖 *AI GAMBAR ANALYZER*\n\nCara penggunaan:\n1. Kirim gambar dengan caption !aigambar [pertanyaan]\n2. Reply gambar dengan !aigambar [pertanyaan]\n\nContoh:\n!aigambar\n!aigambar apa yang ada di gambar ini?\n!aigambar jelaskan detail gambar ini`);
+                await m.reply(`🤖 *AI IMAGE ANALYZER*\n\nCara penggunaan:\n1. Kirim gambar dengan caption !aigambar [pertanyaan]\n2. Reply gambar dengan !aigambar [pertanyaan]\n\nContoh:\n!aigambar\n!aigambar apa yang ada di gambar ini?\n!aigambar jelaskan detail gambar ini`);
                 return;
             }
 
@@ -89,14 +89,7 @@ export const handler = {
             }
 
             // Format response
-            const result = aiResponse.data.result;
-            const responseMessage = `🤖 *AI GAMBAR ANALYZER*\n\n` +
-                `❓ *Pertanyaan:* ${question}\n\n` +
-                `🔍 *Analisis AI:*\n${result}\n\n` +
-                `🔗 *Image URL:* ${imageUrl}\n` +
-                `⏰ *Dianalisis:* ${new Date().toLocaleString('id-ID')}`;
-
-            await m.reply(responseMessage);
+            await m.reply(aiResponse.data.result);
 
             // Add success reaction
             await sock.sendMessage(m.chat, {

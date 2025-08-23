@@ -361,22 +361,6 @@ Jika mencapai 3 warning, kamu akan dikeluarkan dari grup.`);
                 }
                 break;
 
-            case 'chat':
-                try {
-                    // Pastikan args adalah string
-                    const messageText = Array.isArray(args) ? args.join(' ') : args;
-                    await m.reply(messageText);
-                } catch (error) {
-                    logger.error("Error in chat:", error);
-                    // Fallback ke pengiriman teks biasa jika terjadi error
-                    try {
-                        await m.reply("Maaf, terjadi kesalahan saat mengirim pesan. Silakan coba lagi.");
-                    } catch (fallbackError) {
-                        logger.error("Fallback error:", fallbackError);
-                    }
-                }
-                break;
-
             case '#': // Untuk exec
                 try {
                     if (!await m.isOwner) {

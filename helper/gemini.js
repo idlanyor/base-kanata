@@ -89,7 +89,7 @@ export async function analyzeMessage(message, plugins, retryCount = 0) {
     }
 
     try {
-        const analyzeModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+        const analyzeModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         const prompt = `Lu adalah Kanata, bot WhatsApp yang pinter banget. Lu punya fitur-fitur keren berikut:
 
@@ -183,7 +183,7 @@ PENTING: Confidence harus tinggi (>0.8) kalo mau jalanin command!`;
 
 export async function chatWithAI(message, plugins) {
     try {
-        const chatModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+        const chatModel = genAI.getGenerativeModel({ model: '' });
 
         const prompt = `Lu adalah Kanata, bot WhatsApp yang asik dan friendly banget. Lu punya fitur-fitur keren berikut:
 

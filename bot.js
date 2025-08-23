@@ -1,4 +1,4 @@
-import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, useMultiFileAuthState, DisconnectReason, Browsers, getAggregateVotesInPollMessage } from '@whiskeysockets/baileys';
+import { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, useMultiFileAuthState, DisconnectReason, Browsers, getAggregateVotesInPollMessage } from 'baileys';
 import pino from "pino";
 import NodeCache from "node-cache";
 import fs from 'fs-extra';

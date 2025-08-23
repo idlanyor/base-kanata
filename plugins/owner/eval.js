@@ -31,10 +31,14 @@ export const handler = {
                 /constructor/i,
                 /prototype/i,
                 /__proto__/i,
-                /this\s*\./i
+                /this\s*\./i,
+                /\[.*\]\..*\(/i, // Prevent array method calls
+                /\{.*\}\..*\(/i, // Prevent object method calls
+                /setTimeout|setInterval/i,
+                /Promise|async|await/i,
+                /\bvm\b|virtualMachine/i
             ];
 
-            // Check for dangerous patterns
             for (const pattern of dangerousPatterns) {
                 if (pattern.test(evalCode)) {
                     await m.reply('❌ *SECURITY ERROR*\n\nKode yang Anda masukkan mengandung operasi yang tidak diizinkan untuk keamanan sistem.');
@@ -42,51 +46,83 @@ export const handler = {
                 }
             }
 
-            // Whitelist of allowed operations
+            // Enhanced whitelist of allowed operations
             const allowedGlobals = {
-                Math,
-                Date,
-                JSON,
-                Array,
-                Object,
-                String,
-                Number,
-                Boolean,
+                Math: {
+                    abs: Math.abs,
+                    ceil: Math.ceil,
+                    floor: Math.floor,
+                    max: Math.max,
+                    min: Math.min,
+                    pow: Math.pow,
+                    random: Math.random,
+                    round: Math.round,
+                    sqrt: Math.sqrt
+                },
+                Date: {
+                    now: Date.now,
+                    parse: Date.parse
+                },
+                JSON: {
+                    parse: JSON.parse,
+                    stringify: JSON.stringify
+                },
+                Number: {
+                    isInteger: Number.isInteger,
+                    parseFloat: Number.parseFloat,
+                    parseInt: Number.parseInt
+                },
+                String: {
+                    fromCharCode: String.fromCharCode
+                },
                 parseInt,
                 parseFloat,
                 isNaN,
                 isFinite
             };
 
-            // Create safe evaluation function
-            const safeEval = (code) => {
-                try {
-                    // Simple arithmetic and basic operations only
-                    if (/^[\d\s+\-*/().]+$/.test(code)) {
-                        return Function('"use strict"; return (' + code + ')')();
-                    }
-                    
-                    // For more complex but safe operations
-                    const func = new Function('globals', `
-                        "use strict";
-                        const {${Object.keys(allowedGlobals).join(',')}} = globals;
-                        return (${code});
-                    `);
-                    
-                    return func(allowedGlobals);
-                } catch (error) {
-                    throw error;
+            // Create sandbox environment
+            const sandbox = {
+                ...allowedGlobals,
+                console: {
+                    log: (...args) => args.join(' ')
                 }
             };
 
-            // Execute safe evaluation
+            // Enhanced safe evaluation function
+            const safeEval = (code) => {
+                try {
+                    // For simple arithmetic
+                    if (/^[\d\s+\-*/().]+$/.test(code)) {
+                        return new Function('"use strict"; return (' + code + ')')();
+                    }
+                    
+                    // For more complex operations
+                    const wrappedCode = `
+                        "use strict";
+                        with (sandbox) {
+                            return (${code});
+                        }
+                    `;
+                    
+                    const secureFunction = new Function('sandbox', wrappedCode);
+                    return secureFunction(sandbox);
+                } catch (error) {
+                    throw new Error(`Evaluation Error: ${error.message}`);
+                }
+            };
+
             const result = safeEval(evalCode);
             let output = '✅ *RESULT*\n\n';
 
-            if (typeof result === 'string') {
+            if (result === undefined) {
+                output += 'undefined';
+            } else if (result === null) {
+                output += 'null';
+            } else if (typeof result === 'string') {
                 output += result;
-            } else if (typeof result === 'object' && result !== null) {
-                output += JSON.stringify(result, null, 2);
+            } else if (typeof result === 'object') {
+                output += util.inspect(result, { depth: 2, colors: false });
             } else {
                 output += String(result);
             }
@@ -97,4 +133,4 @@ export const handler = {
             await m.reply(`❌ *ERROR*\n\n${error.message}`);
         }
     }
-}; 
+};
